@@ -7,6 +7,10 @@
 
 class Light;
 class ObjectData;
+class ObjectBase;
+class ObjectDataUpdater;
+class BezierSurfaceObject;
+
 
 #include <shader.h>
 #include <display.h>
@@ -16,6 +20,7 @@ struct SceneData {
 
   std::vector<Light> lights;
   std::unordered_map<ObjectShader, std::vector<ObjectData>, std::hash<GLuint>> renderData;
+  std::unordered_map<std::string, ObjectBase*> objects;
 
   GLint lightCarried = -1;
   GLuint lightCurrent = 0;
@@ -23,7 +28,7 @@ struct SceneData {
 };
 
 
-
+#include <object_data.h>
 
 class Controller;
 
@@ -50,6 +55,8 @@ public:
 
   std::vector<Light>& lights = data->lights;
   std::unordered_map<ObjectShader, std::vector<ObjectData>, std::hash<GLuint>>& renderData = data->renderData;
+  std::unordered_map<std::string, ObjectBase*> objects = data->objects;
+  
 
   /// @brief clear scene with bg_color
   void clear();
@@ -67,6 +74,13 @@ public:
   /// @brief add object to the scene
   /// @param ObjectData: the object to be added
   void add(const ObjectData&);
+  void add(BezierSurfaceObject&);
+
+  // void add(ObjectDataUpdater&);
+  // template<class T, typename U = std::enable_if_t<std::is_base_of_v<ObjectDataUpdater, T>>>
+  // void Scene::add(T&& o)  { 
+  //   add(ObjectData{ std::forward<T>(o) });
+  // }
 
   /// @brief add object to the scene
   /// @param ObjectData: the object to be added 
@@ -76,6 +90,11 @@ public:
   /// @brief add object shader to the scene
   /// @param ObjectShader: the shader to be added
   void add(const ObjectShader&);
+
+
+  /// @brief add object to the scene
+  /// @param Object: the object to be added
+  void add(const std::string& name, ObjectBase&);
 
   /// @brief carry a light with the camera
   /// @param Light: the light to be carried

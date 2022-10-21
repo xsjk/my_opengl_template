@@ -67,3 +67,8 @@ WindowGuard::WindowGuard(GLFWwindow *&window, const int width, const int height,
 
 WindowGuard::~WindowGuard() { glfwTerminate(); }
 
+
+
+
+
+

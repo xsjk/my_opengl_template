@@ -1,5 +1,6 @@
 #include <utils.h>
 #include <object_data.h>
+#include <object_data_updater.h>
 #include <window.h>
 #include <bezier.h>
 
@@ -12,10 +13,7 @@ void RenderData::draw_arrays(GLenum mode) const {
 }
 
 void RenderDataHandler::draw() const {
-  if(updater){
-    (*updater)(vertices,indices);
-    update(GL_STREAM_DRAW);
-  }
+
   if(!data) return;
   glBindVertexArray(VAO);
   if (enable_EBO)
@@ -87,6 +85,14 @@ void RenderDataHandler::load(const std::string &path) {
   }
 }
 
+
+RenderDataHandler::RenderDataHandler() {}
+
+RenderDataHandler::RenderDataHandler(GLenum draw_mode, bool enable_EBO)
+  : draw_mode { draw_mode }, enable_EBO { enable_EBO } {}
+
+RenderDataHandler::RenderDataHandler(const ObjectDataUpdater& u) 
+  : RenderDataHandler{u.draw_mode,u.enable_EBO} {}
 
 RenderDataHandler::RenderDataHandler(
   const std::vector<Vertex>& ver, 

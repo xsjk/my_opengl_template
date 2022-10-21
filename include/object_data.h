@@ -1,52 +1,66 @@
-#ifndef _OBJECT_H_
-#define _OBJECT_H_
+#ifndef _OBJECT_DATA_H_
+#define _OBJECT_DATA_H_
 
 #include <defines.h>
-#include <transform.h> // Affine
 #include <render_data.h>
 
 
+#include <object_params.h>
+#include <object_data_updater.h>
+
 class Window;
+// low level object
 class ObjectDataUpdater;
-class ObjectData : public Affine {
-  
-  friend class Window;
-  
-  friend class ObjectDataUpdater;
-  ObjectData(const ObjectDataUpdater * updater);
+class ObjectDataUpdaterPlus;
+class ObjectData : public ObjectParams {
 
 protected:
-  ObjectData();
-  std::shared_ptr<std::vector<RenderDataHandler>> data;
-  std::shared_ptr<ObjectDataUpdater> updater = nullptr;
+  friend class Window;
+  RenderDataHandler data;
 
 private:
-  vec3 color;
-  void __update__();
+  friend class ObjectDataUpdater;
+  friend class ObjectDataUpdaterPlus;
+  /// @brief create an object with updater only once (static data)
+  template<class T, typename U=std::enable_if_t<std::is_base_of_v<ObjectDataUpdater,T>>>
+  ObjectData(const T* u) { (*u).update(*this); }
+
 public:
-  SETTER_GETTER(color, vec3)
 
-  virtual void update();
+  std::shared_ptr<ObjectDataUpdater> updater = nullptr;
 
-  inline bool is_static() const { return updater == nullptr; }
-
-
-  /// @brief create dynamic object data controlled by the updater
-  /// @param updater 
-  ObjectData(const ObjectDataUpdater& updater);
-
-  // this should be removed
+  // this is an old API
   ObjectData(const RenderDataHandler& data, vec3 color=vec3{0}, Affine affine=Affine{});
-  
-  ObjectData(const std::vector<RenderDataHandler>& data, vec3 color=vec3{0}, Affine affine=Affine{});
 
-  std::vector<RenderDataHandler>& render_data = *data;
+
+  /// @brief create an object binding to an updater (dynamic data)
+  template<class T, typename U=std::enable_if_t<std::is_base_of_v<ObjectDataUpdater,T>>>
+  ObjectData(T& u) : ObjectData(std::make_shared<T>(u)) {}
+
+  template<class T, typename U=std::enable_if_t<std::is_base_of_v<ObjectDataUpdater,T>>>
+  ObjectData(std::shared_ptr<T> u) : data(*u), updater(u) {
+
+    switch (u->update_type) { 
+      case ObjectDataUpdater::UpdateType::STATIC: 
+        set_buffer_mode(GL_STATIC_DRAW);  break;
+      case ObjectDataUpdater::UpdateType::DYNAMIC: 
+        set_buffer_mode(GL_DYNAMIC_DRAW); break;
+      case ObjectDataUpdater::UpdateType::STREAM: 
+        set_buffer_mode(GL_STREAM_DRAW);  break;
+    }
+    // (*u)(*this);
+    u->update(*this); 
+  }
+
+
+  std::vector<Vertex>& vertices = data.vertices;
+  std::vector<GLuint>& indices = data.indices;
 
   void draw() const;
 };
 
-class ObjectDataHandler : public ObjectData {};
 
-using Object = ObjectDataHandler;
+
+
 
 #endif

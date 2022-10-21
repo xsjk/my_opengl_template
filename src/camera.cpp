@@ -36,6 +36,7 @@ void Camera::KeyboardPressingCallback(int key, int mod) {
     case GLFW_KEY_SPACE:        move(0,v,0);      break;
     case GLFW_KEY_LEFT_SHIFT:   move(0,-v,0);     break;
   }
+  // std::cout << get_eye() << std::endl;
 }
 
 void Camera::CursorMoveCallback(GLfloat xoffset, GLfloat yoffset) {

@@ -58,7 +58,7 @@ void Window::setup() {
   for (auto &scene : scenes) {
     for (auto&[_, objects] : scene.renderData)
       for (auto &object : objects)
-        setup(*object.data);
+        setup(object.data);
     for (auto &light : scene.lights)
       setup(light.display);
   }

@@ -13,40 +13,27 @@ struct RenderData {
 
 
 class Window;
-struct RenderDataUpdater;
+class ObjectData;
+class ObjectDataUpdater;
 class RenderDataHandler {
 
   friend class Window;
+  friend class ObjectData;
+  RenderDataHandler();
 
-  
-
-protected:
+// public:
   std::shared_ptr<RenderData> data{ std::make_shared<RenderData>() };
-  std::shared_ptr<RenderDataUpdater> updater = nullptr;
   GLuint VAO, &VBO{ data->VBO }, &EBO{ data->EBO };
   std::vector<Vertex> &vertices{ data->vertices };
   std::vector<GLuint> &indices{ data->indices };
   GLenum draw_mode = GL_TRIANGLES;
   bool enable_EBO = true;
 
-  
-private:
-
-  friend class RenderDataUpdater;
-  /// @brief create an object with updater only once (static data)
-  template<class T, typename U=std::enable_if_t<std::is_base_of_v<RenderDataUpdater,T>>>
-  RenderDataHandler(const T* u) : draw_mode{u->draw_mode}, enable_EBO{u->enable_EBO} {(*u)(vertices, indices);}
-
 public:
+  
+  RenderDataHandler(GLenum draw_mode, bool enable_EBO);
+  RenderDataHandler(const ObjectDataUpdater& );
 
-  inline bool is_static() const { return updater == nullptr; }
-
-  /// @brief create an object binding to an updater (dynamic data)
-  template<class T, typename U=std::enable_if_t<std::is_base_of_v<RenderDataUpdater,T>>>
-  RenderDataHandler(const T& u) : updater(std::make_shared<T>(u)), draw_mode{u.draw_mode}, enable_EBO{u.enable_EBO} { u(vertices, indices);}
-
-  template<class T, typename U=std::enable_if_t<std::is_base_of_v<RenderDataUpdater,T>>>
-  RenderDataHandler(std::shared_ptr<T> u) : updater(u), draw_mode{u->draw_mode}, enable_EBO{u->enable_EBO} { (*u)(vertices, indices);}
 
   RenderDataHandler(
     const std::vector<Vertex>& vertices, 

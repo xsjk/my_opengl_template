@@ -14,6 +14,7 @@
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
+#include <set>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -38,6 +39,9 @@ using glm::vec3;
 using glm::vec4;
 
 using Color = vec3;
+
+enum class Triangulation { adaptive, normal };
+
 
 #define GLFW_PRESSING 3
 
@@ -64,15 +68,27 @@ const float PI = pi<float>();
 
 #define SETTER(name, type)                  \
   template<typename ...T>                   \
-  void set_##name(T&&... args){             \
+  auto& set_##name(T&&... args){            \
     name = type(std::forward<T>(args)...);  \
-    __update__();\
+    __update__();                           \
+    return *this;                           \
   }
+
+#define DERIVED_SETTER(name)                          \
+  template<typename ...T>                             \
+  auto& set_##name(T&&... args){                      \
+    __base__::set_##name(std::forward<T>(args)...);   \
+    __update__();                                     \
+    return *this;                                     \
+  }
+
+
 #define INCREASER(name)         \
   template<typename T>          \
-  void increase_##name(T arg){  \
+  auto& increase_##name(T arg){ \
     name += arg;                \
-    __update__();                   \
+    __update__();               \
+    return *this                \
   }
 #define GETTER(name, type) \
   type get_##name() const { return name; }
@@ -81,7 +97,7 @@ const float PI = pi<float>();
   SETTER(name, type)              \
   GETTER(name, type)
 
-#define MAT_GETTER \
+#define MAT_GETTER                    \
   mat4 matrix() const { return mat; } \
   operator mat4() const { return mat; }
 

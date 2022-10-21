@@ -2,7 +2,7 @@
 out vec4 FragColor;
 
 layout (triangles) in;
-layout (line_strip, max_vertices = 3) out;
+layout (line_strip, max_vertices = 4) out;
 
 in VS_OUT {
     vec3 normal;
@@ -18,13 +18,18 @@ out GS_OUT {
 uniform mat4 camera;
 uniform vec3 color;
 
+void produceVertex(int i) {
+    gs_out.normal = gs_in[i].normal;
+    gs_out.pos = gs_in[i].pos;
+    gs_out.color = color;
+    gl_Position = camera * vec4(gs_out.pos,1.0);
+    EmitVertex();
+}
+
 void main() {
     for (int i = 0; i < 3; i++) {
-        gs_out.normal = gs_in[i].normal;
-        gs_out.pos = gs_in[i].pos;
-        gs_out.color = color;
-        gl_Position = camera * vec4(gs_out.pos,1.0);
-        EmitVertex();
+        produceVertex(i);
     }
+    produceVertex(0);
     EndPrimitive();
 }

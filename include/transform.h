@@ -6,6 +6,7 @@
 class Shader;
 
 class Affine {
+protected:
   vec3 displacement, rotation, scale;
   mat4 mat;
   void __update__();

@@ -24,12 +24,12 @@ void main() {
     for (int i = 0; i < 3; i++) {
         gs_out.pos = gs_in[i].pos;
         gs_out.normal = gs_in[i].normal;
-        gs_out.color = vec3(0, 1, 0);
+        gs_out.color = vec3(1, 1, 0);
         gl_Position = camera * vec4(gs_out.pos, 1.0);
         EmitVertex();
         gs_out.pos = gs_in[i].pos + gs_in[i].normal/30;
         gs_out.normal = gs_in[i].normal;
-        gs_out.color = vec3(0, 0, 0);
+        gs_out.color = vec3(1);
         gl_Position = camera * vec4(gs_out.pos, 1.0);
         EmitVertex();
         EndPrimitive();

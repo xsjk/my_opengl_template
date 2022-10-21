@@ -10,9 +10,10 @@ class Display {
     GLsizei width, height;
   public:
     enum Type {
-      DEFAULT,
+      FOLLOW_CAMERA,
       LIGHT_TRACKING,
-    } mode = DEFAULT;
+      FIXED
+    } mode = FOLLOW_CAMERA;
 
     SETTER_GETTER(x, GLint);
     SETTER_GETTER(y, GLint);

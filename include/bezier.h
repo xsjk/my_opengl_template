@@ -2,65 +2,98 @@
 #define _BEZIER_H_
 #include <defines.h>
 #include <vertex.h>
-#include <render_data_updater.h>
+#include <object_data_updater.h>
 
 
-class BezierCurve: public RenderDataUpdater {
+
+
+class BezierCurve: public ObjectDataUpdaterPlus {
 
  public:
-  using RenderDataUpdater::operator();
 
-  std::vector<vec3> control_points_;
+  Triangulation mode = Triangulation::adaptive;
 
-  GLuint resolution = 100;
+  std::vector<vec3> control_points;
+
+  GLuint resolution = 10;
 
 
   BezierCurve(int m);
   BezierCurve(const std::vector<vec3>& control_points);
 
-  void setControlPoint(int i, vec3 point);
+  void set_control_point(int i, vec3 point);
   
   Vertex evaluate(GLfloat t) const;
-
-  std::vector<GLfloat> coeff(GLfloat t) const;
-
-  virtual void operator()(std::vector<Vertex>&, std::vector<GLuint>&) const override;
-
-  /// @brief calculate C(n, i) * t^i * (1-t)^(n-i) at n,t
-  /// @param n the order of the polynomial
-  /// @param t the parameter
-  /// @return the list of Bernstein coefficents of degree n at t
-  static std::vector<GLfloat> coeff(GLuint n, GLfloat t);
-  static std::vector<GLfloat> dcoeff(const std::vector<GLfloat>& coeff, GLfloat t);
   
+  /// @brief the measure of bending at t (not equal to curvature!)
+  double cur_measure(double t) const;
+
+  virtual void update(ObjectData&) const override;
+  
+  /// @brief calculate the coefficents of the n  Bernstein basis polynomial's k-th derivative
+  /// @param p the order of the Bernstein polynomial
+  /// @param t the parametre
+  /// @param k the order of the derivative
+  /// @return the coefficient vector B_{i,p}(t) (for i)
+  static const std::vector<GLfloat>& coeffs(GLushort p, GLfloat t, GLushort k=0);
+
+  /// @brief the Cache for coeffs， map from (p,k,t) to the coefficient vector
+  /// @note the cache is shared by all BezierCurve objects
+  static struct Cache {
+    struct Key {
+      GLushort p, k; 
+      GLfloat t; 
+      inline operator size_t() const { 
+        return *reinterpret_cast<const size_t*>(this); 
+      }
+    };
+    inline std::vector<GLfloat>& operator[](Key k) { return data[k]; }
+  private:
+    std::unordered_map<Key, std::vector<GLfloat>, std::hash<size_t>> data;
+  } cache;
+
   static Vertex evaluate(const std::vector<vec3>& control_points, GLfloat t);
 
 };
 
 
+#include <sampler.h>
 
-class BezierSurface : public RenderDataUpdater {
- public:
-  using RenderDataUpdater::operator();
-  
-  std::vector<std::vector<vec3>> control_points_m_;
-  std::vector<std::vector<vec3>> control_points_n_;
+class BezierSurface : public ObjectDataUpdaterPlus {
 
-  GLuint resolution_m = 20;
-  GLuint resolution_n = 20;
+public:
+
+  GLuint resolution_m = 10;
+  GLuint resolution_n = 10;
+  double dS = .02;
+  double order = 2;
+
+  // double dS = 0.02;
+  // double order = 1;
+
+  Triangulation mode = Triangulation::adaptive;
+
+
+  std::vector<std::vector<vec3>> control_points;
 
   BezierSurface(int m, int n);
   BezierSurface(const std::vector<std::vector<vec3>>& control_points);
 
-  Vertex evaluate(GLfloat u, GLfloat v) const;
+  virtual Vertex evaluate(GLfloat u, GLfloat v) const;
 
-  void setControlPoint(int i, int j, vec3 point);
+/// @brief the measure of bending at (u,v) (not equal to curvature!)
+  double cur_measure(double u, double v, double order=3) const;
 
-  virtual void operator()(std::vector<Vertex>&, std::vector<GLuint>&) const override;
+  void set_control_point(int i, int j, vec3 point);
 
-  static std::vector<BezierSurface> read(const std::string &path);
+  virtual void update(ObjectData&) const override;
+
+  
   static Vertex evaluate(const std::vector<std::vector<vec3>>& control_points, GLfloat u, GLfloat v);
 
+  static std::vector<BezierSurface> read(const std::string &path);
+
 };
+
 
 #endif

@@ -33,13 +33,24 @@ endif()
 add_library(GLAD src/glad.c)
 list(APPEND LIBRARIES GLAD)
 
+
 # set source files and add executable
 file(GLOB SRC_FILES src/*.cpp)
+file(GLOB UTIL_FILES utils/*.hpp)
+
+
+# # delaunator
+# add_library(Utils ${UTIL_FILES})
+# set_target_properties(Utils PROPERTIES LINKER_LANGUAGE CXX)
+# list(APPEND LIBRARIES Utils)
+# include_directories(utils)
 
 
 # add library
 add_library(Capsule STATIC ${SRC_FILES})
 target_include_directories(Capsule PUBLIC include)
+target_include_directories(Capsule PUBLIC libs)
+target_include_directories(Capsule PUBLIC utils)
 target_compile_definitions(Capsule PUBLIC ${DEFINES})
 target_link_libraries(Capsule PUBLIC ${LIBRARIES})
 target_compile_features(Capsule PUBLIC cxx_std_17)
