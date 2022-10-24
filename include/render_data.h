@@ -3,6 +3,7 @@
 #include <shader.h>
 #include <vertex.h>
 
+
 struct RenderData {
   mutable GLuint VBO = 0, EBO = 0;
   void draw_elements(GLenum mode) const;

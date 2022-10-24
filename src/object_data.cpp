@@ -1,8 +1,12 @@
 #include <object_data.h>
 #include <object_data_updater.h>
 
+std::map<unsigned, ObjectData*> ObjectData::idToObjectData;
+
 ObjectData::ObjectData(const RenderDataHandler& handle, vec3 color, Affine affine) : 
-  ObjectParams(color, affine), data(handle) {}
+  ObjectParams(color, affine), data(handle) {
+    __init__();
+  }
 
 void ObjectData::draw() const {
   if(updater){
@@ -27,4 +31,31 @@ void ObjectData::draw() const {
   // old Version
   if(visibility)
     data.draw();
+}
+
+
+void ObjectData::onclick() {
+  std::cout << this << " is clicked\n" ;
+}
+
+void ObjectData::onrelease() {
+  std::cout << this << " is released\n" ;
+}
+
+void ObjectData::mouseover() {
+  std::cout << this << " mouse over\n";
+}
+
+void ObjectData::mouseout() {
+  std::cout << this << " mouse out\n";
+}
+
+ObjectData::~ObjectData() {
+  std::cout << "map erase " << ID << std::endl;
+  idToObjectData.erase(ID);
+}
+
+void ObjectData::__init__() {
+  std::cout << "map insert " << ID << std::endl;
+  idToObjectData.insert({ID,this});
 }

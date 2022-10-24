@@ -206,3 +206,19 @@ void LightShader::draw(const Light& light) const {
   light.display.draw();
 }
 
+
+
+void PickingShader::set(const Camera& camera) const {
+  setMat4("camera", camera.matrix());
+}
+
+
+void PickingShader::init() {
+  Shader::init("shader/picking.vs", "shader/picking.fs");
+}
+
+void PickingShader::draw(const ObjectData& object) const {
+  setMat4("model", object.matrix());
+  setVec3("ID", {float(object.get_ID()),0.0,0.0});
+  object.draw();
+}

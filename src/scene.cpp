@@ -16,7 +16,7 @@ void Scene::clear() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Scene::render() {
+void Scene::render(PickingShader* pickingShader) {
 
   display.activate();
 
@@ -27,17 +27,27 @@ void Scene::render() {
     object->draw();
   }
 
-  // draw objects in renderData
-  for (auto& [shader,objects]: data->renderData) {
-    shader.use();
-    shader.set(display.camera);
-    // print(display.camera.matrix());  
-    // std::cout << & display.camera << std::endl;
-    int i = 0;
-    for(auto& light:lights) 
-      shader.set(light,i++);
-    for(auto& object:objects)
-      shader.draw(object);
+  // draw lights (Low level)
+  if (pickingShader) {
+    ///@warning pickingTexture is garanteed to be activated
+    pickingShader->use();
+    pickingShader->set(display.camera);
+    for (auto& [shader,objects]: data->renderData)
+      for(auto& object:objects)
+        pickingShader->draw(object);
+  } else {
+    // draw objects in renderData
+    for (auto& [shader,objects]: data->renderData) {
+      shader.use();
+      shader.set(display.camera);
+      // print(display.camera.matrix());  
+      // std::cout << & display.camera << std::endl;
+      int i = 0;
+      for(auto& light:lights) 
+        shader.set(light,i++);
+      for(auto& object:objects)
+        shader.draw(object);
+    }
   }
   
   // draw lights
@@ -51,6 +61,7 @@ void Scene::render() {
 }
 
 void Scene::update() {
+
   switch (display.mode) {
     case Display::FOLLOW_CAMERA:
       if(lightCarried>=0)
@@ -59,14 +70,12 @@ void Scene::update() {
     case Display::LIGHT_TRACKING:
       display.camera.follow(lights[lightCurrent]);
       break;
-  }    
+  }
 
   // update objects (High level)
   for (auto& [name,object]: objects) {
     object->update();
   }
-
-  render();
 }
 
 
@@ -95,12 +104,12 @@ void Scene::add(const std::string& name, ObjectBase& object) {
 // }
 
 
-void Scene::add(BezierSurfaceObject& object) {
-  add(ObjectData{object.updater.point});
-  add(ObjectData{object.updater.grid});
-  add(ObjectData{object.updater.face});
+// void Scene::add(BezierSurfaceObject& object) {
+//   add(ObjectData{object.updater.point});
+//   add(ObjectData{object.updater.grid});
+//   add(ObjectData{object.updater.face});
 
-}
+// }
 
 
 void Scene::graspLight() {

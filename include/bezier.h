@@ -57,19 +57,11 @@ class BezierCurve: public ObjectDataUpdaterPlus {
 };
 
 
-#include <sampler.h>
+#include <sampler.hpp>
 
 class BezierSurface : public ObjectDataUpdaterPlus {
 
 public:
-
-  GLuint resolution_m = 10;
-  GLuint resolution_n = 10;
-  double dS = .02;
-  double order = 2;
-
-  // double dS = 0.02;
-  // double order = 1;
 
   Triangulation mode = Triangulation::adaptive;
 

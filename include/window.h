@@ -4,13 +4,25 @@
 #include <defines.h>
 #include <scene.h>
 #include <shader.h>
+#include <picking.h>
 
 class RenderDataHandler;
 class RenderData;
 
 class Window {
 
+  void update_cursor_pos();
+
+  void updateObjectID();
+
+  glm::vec<2,unsigned> cursor_pos;
+
 public:
+
+  const int width, height;
+
+  unsigned input_mode = GLFW_CURSOR_DISABLED;
+  // unsigned input_mode = GLFW_CURSOR_NORMAL;
   
   /**
    * @brief Construct a Window
@@ -54,6 +66,11 @@ public:
   
   std::vector<Scene> scenes;
 
+  /// @brief the PickingTexture for the window
+  PickingTexture pickingTexture;
+  PickingShader pickingShader;
+  unsigned current_object_ID = 0;
+
 private:
 
   GLFWwindow *windowHandle; 
@@ -65,6 +82,7 @@ private:
 
   /// @brief the modifier key flag for SHIFT, CTRL, ALT, SUPER, CAPS_LOCK, NUM_LOCK
   int modifierKeys = 0;
+
 
   /// @brief set the window as the current context
   void makeCurrent();

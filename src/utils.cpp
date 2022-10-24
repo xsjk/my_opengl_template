@@ -71,4 +71,4 @@ WindowGuard::~WindowGuard() { glfwTerminate(); }
 
 
 
-
+unsigned Indexer::next = 1;

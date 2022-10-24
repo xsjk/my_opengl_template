@@ -5,4 +5,6 @@
 
 BezierSurfaceObject::BezierSurfaceObject(
   const BezierSurface& surface
-) : surface { std::make_shared<BezierSurface>(surface) } {}
+) : surface { std::make_shared<BezierSurface>(surface) } {
+  
+}

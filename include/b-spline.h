@@ -77,7 +77,7 @@ class BsplineCurve: public ObjectDataUpdaterPlus {
 };
 
 
-#include <sampler.h>
+#include <sampler.hpp>
 
 template<typename V=vec3>
 class BsplineSurface : public ObjectDataUpdaterPlus {
@@ -105,7 +105,7 @@ public:
 
   Vertex evaluate(GLfloat u, GLfloat v) const;
 
-  double cur_measure(vec2 u, double order) const;
+  double cur_measure(double u, double v, double order) const;
 
   void set_control_point(int i, int j, V point);
 
@@ -117,8 +117,6 @@ public:
     glm::vec<2, GLushort> p,
     glm::vec<2, Type> type
   );
-
-  // static std::vector<BsplineSurface<V>> read(const std::string &path);
 
 };
 
@@ -336,16 +334,16 @@ Vertex BsplineSurface<V>::evaluate(GLfloat u, GLfloat v) const {
 }
 
 template <typename V>
-double BsplineSurface<V>::cur_measure(vec2 t, double order) const {
+double BsplineSurface<V>::cur_measure(double u, double v, double order) const {
 
   glm::vec<2,GLuint> n {control_points.size(),control_points.front().size()};
 
-  const auto &cu  = BsplineCurve<V>::coeffs(n[0], p[0], t[0], type[0], 0),
-             &cv  = BsplineCurve<V>::coeffs(n[1], p[1], t[1], type[1], 0),
-             &dcu = BsplineCurve<V>::coeffs(n[0], p[0], t[0], type[0], 1),
-             &dcv = BsplineCurve<V>::coeffs(n[1], p[1], t[1], type[1], 1),
-             &ddcu= BsplineCurve<V>::coeffs(n[0], p[0], t[0], type[0], 2),
-             &ddcv= BsplineCurve<V>::coeffs(n[1], p[1], t[1], type[1], 2);
+  const auto &cu  = BsplineCurve<V>::coeffs(n[0], p[0], u, type[0], 0),
+             &cv  = BsplineCurve<V>::coeffs(n[1], p[1], v, type[1], 0),
+             &dcu = BsplineCurve<V>::coeffs(n[0], p[0], u, type[0], 1),
+             &dcv = BsplineCurve<V>::coeffs(n[1], p[1], v, type[1], 1),
+             &ddcu= BsplineCurve<V>::coeffs(n[0], p[0], u, type[0], 2),
+             &ddcv= BsplineCurve<V>::coeffs(n[1], p[1], v, type[1], 2);
 
   const auto &du  = weighted_sum(control_points, dcu, cv),
              &dv  = weighted_sum(control_points, cu, dcv),
@@ -366,63 +364,21 @@ double BsplineSurface<V>::cur_measure(vec2 t, double order) const {
 }
 
 
-#include <simpson.h>
-
-
 template <typename V>
 void BsplineSurface<V>::update(ObjectData &data) const {
-  
-
   switch (mode) {
     case Triangulation::adaptive: {
-      // adaptive triangulation
-      std::function<double(double,double)> f = [this](double u, double v) { return cur_measure({u,v},order); };
-      auto sample = Simpson::fast_partition(f, dS, 0, 1, 0, 1);
-      std::vector<double> uv_coord;
-      uv_coord.reserve(sample.size()*2);
-      std::cout << sample.size() << std::endl;
-      data.vertices.clear();
-      data.vertices.reserve(sample.size());
-      for (auto [u,v]: sample) {
-        data.vertices.push_back(evaluate(u, v));
-        uv_coord.push_back(u);
-        uv_coord.push_back(v);
-      }
-      data.indices = delaunator::Delaunator(uv_coord).triangles;
+      AdaptiveSampler<BsplineSurface<V>> s{*this};
+      data.vertices = std::move(s.vertices);
+      data.indices = std::move(s.mesh_indices);
     } break;
-
     case Triangulation::normal: {
-      // my basic triangulation
-      data.vertices.clear();
-      data.vertices.reserve((resolution[0]+1)*(resolution[1]+1));
-      for (GLuint i=0; i<=resolution[0]; ++i)
-        for (GLuint j=0; j<=resolution[1]; ++j)
-          data.vertices.push_back(evaluate(float(i)/resolution[0], float(j)/resolution[1]));
-      data.indices.clear();
-      data.indices.reserve(resolution[0]*resolution[1]*6);
-      for (GLuint i=0; i<resolution[0]; ++i) {
-        for (GLuint j=0; j<resolution[1]; ++j) {
-          GLuint index[4] = {
-                i*(resolution[1]+1)+j,
-                i*(resolution[1]+1)+j+1,
-            (i+1)*(resolution[1]+1)+j,
-            (i+1)*(resolution[1]+1)+j+1,
-          };
-          data.indices.push_back(index[0]);
-          data.indices.push_back(index[1]);
-          data.indices.push_back(index[2]);
-          data.indices.push_back(index[1]);
-          data.indices.push_back(index[3]);
-          data.indices.push_back(index[2]);
-        }
-      }
-
+      Sampler<BsplineSurface<V>> s{*this};
+      data.indices = std::move(s.mesh_indices);
+      data.vertices = std::move(s.vertices);
     } break;
-
   }
-
-
-  
+  return;
 }
 
 

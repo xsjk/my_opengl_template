@@ -14,6 +14,11 @@ struct WindowGuard final {
   ~WindowGuard();
 };
 
+struct Indexer {
+  static unsigned next;
+  const unsigned ID = next++;
+};
+
 
 static const std::vector<GLuint>& Binomial(GLuint n) {
   static std::vector<std::vector<GLuint>> coeff_lists = {{1}, {1, 1}};

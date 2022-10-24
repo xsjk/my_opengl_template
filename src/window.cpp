@@ -3,25 +3,32 @@
 #include <render_data.h>
 #include <object_data.h>
 #include <light.h>
+#include <picking.h>
 
 std::unordered_map<GLFWwindow*,Window*> Window::windows;
 Window::Guard Window::guard;
 std::unordered_map<std::shared_ptr<RenderData>, std::pair<GLuint, GLuint>> Window::BOs;
 
-Window::Window(const int width, const int height, const std::string &title) {
+Window::Window(const int width, const int height, const std::string &title)
+  : width{width}, height{height}
+{
   windowHandle = guard.createWindowHandle(width, height, title);
   windows.emplace(windowHandle,this);
   bindCallbacks(windowHandle);
-  glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetInputMode(windowHandle, GLFW_CURSOR, input_mode);
 
   glEnable(GL_DEPTH_TEST); 
   glEnable(GL_SCISSOR_TEST); 
+  glEnable(GL_ALPHA_TEST);
   glEnable(GL_BLEND);  
   glEnable(GL_PROGRAM_POINT_SIZE);  
+  // glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
-
+  
+  pickingTexture.init(width, height);
+  pickingShader.init();
 }
 
 Window::~Window() {
@@ -67,8 +74,17 @@ void Window::setup() {
 void Window::update() {
   makeCurrent();
   checkKeyPressing();
-  for(auto& scene: scenes)
+  updateObjectID();
+  for(auto& scene: scenes) {
     scene.update();
+    scene.render();
+  }
+  {
+    pickingTexture.activate();
+    for(auto& scene: scenes)
+      scene.render(&pickingShader);
+    pickingTexture.deactivate();
+  }
   glfwSwapBuffers(windowHandle);
   glfwPollEvents();
 }
@@ -149,6 +165,33 @@ GLFWwindow* Window::Guard::createWindowHandle(const int width, const int height,
   return window;
 }
 
+void Window::update_cursor_pos() {
+  double x, y;
+  switch (input_mode) {
+    case GLFW_CURSOR_DISABLED:
+      x = width/2;
+      y = height/2;
+      break;
+    case GLFW_CURSOR_NORMAL:
+    case GLFW_CURSOR_HIDDEN:
+      glfwGetCursorPos(windowHandle, &x, &y);
+      y = height - y;
+      break;
+  }
+  cursor_pos = {unsigned(x), unsigned(y)};
+}
+
+void Window::updateObjectID() {
+  update_cursor_pos();
+  auto res = pickingTexture.ReadPixel(cursor_pos[0], cursor_pos[1]);
+  unsigned &old_ID = current_object_ID;
+  unsigned new_ID = round(res[0]);
+  if(old_ID != new_ID){
+    try { ObjectData::idToObjectData.at(new_ID)->mouseover(); } catch(std::out_of_range& e) { std::cerr << "mouseover " << new_ID << ' ' << e.what() << std::endl; }
+    try { ObjectData::idToObjectData.at(old_ID)->mouseout(); } catch(std::out_of_range& e) { std::cerr << "mouseout " << old_ID << ' ' << e.what() << std::endl; }
+    old_ID = new_ID;
+  } 
+}
 
 void Window::bindCallbacks(GLFWwindow* window) {
   glfwSetKeyCallback(window,[](GLFWwindow* w, int k, int s, int a, int m) {
@@ -157,7 +200,7 @@ void Window::bindCallbacks(GLFWwindow* window) {
       case GLFW_PRESS:
         switch (k) {
           case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(w, true);
+            // glfwSetWindowShouldClose(w, true);
             break;
           case GLFW_KEY_LEFT_SHIFT:
           case GLFW_KEY_RIGHT_SHIFT:
@@ -213,12 +256,37 @@ void Window::bindCallbacks(GLFWwindow* window) {
       scene.KeyboardCallback(w,k,s,a,m);
   });
   glfwSetCursorPosCallback(window,[](GLFWwindow* w, double x, double y) {
+
+    auto &window = *Window::windows.at(w);
     static double x_ = x, y_ = y;
-    if(Window::windows.at(w)->focused)     
-      for(auto& scene:Window::windows.at(w)->scenes) 
+    if(window.focused)     
+      for(auto& scene:window.scenes) 
         scene.CursorMoveCallback(w,x-x_,y-y_);
     x_ = x; y_ = y;
+
+    // window.updateObjectID();
+    // put this to mainloop
+    
   });
+  glfwSetMouseButtonCallback(window,[](GLFWwindow* w, int b, int a, int m) {
+    Window& window = *Window::windows.at(w);
+    
+    window.updateObjectID();
+    try {
+      switch(a) {
+        case GLFW_PRESS:
+          ObjectData::idToObjectData.at(window.current_object_ID)->onclick();
+          break;
+        case GLFW_RELEASE:
+          ObjectData::idToObjectData.at(window.current_object_ID)->onrelease();
+          break;
+      }
+    } catch(std::out_of_range& e) {
+      std::cerr << "mouse button at " << window.current_object_ID << ' ' <<e.what() << std::endl;
+    }
+    
+  });
+
   glfwSetScrollCallback(window,[](GLFWwindow* w, double x, double y) {
     for(auto& scene:Window::windows.at(w)->scenes) 
       scene.ScrollCallback(w,x,y);

@@ -8,99 +8,46 @@
 #include <object_data_updater.h>
 
 
-template<class T>
-class PointUpdater : public ObjectDataUpdaterPlus {
-  std::shared_ptr<T> surface;
+/// alternative control points by clicking
+class ControlPoints : public ObjectData {
+
+  std::vector <vec3> points;
+
 public:
-  PointUpdater(std::shared_ptr<T> surface) : ObjectDataUpdaterPlus{GL_POINTS, false}, surface{surface} {}
-  virtual void update(ObjectData& data) const override {
-    data.vertices.resize((surface->resolution_m+1)*(surface->resolution_n+1));
-    for (GLuint i=0; i<=surface->resolution_m; ++i)
-      for (GLuint j=0; j<=surface->resolution_n; ++j) 
-        data.vertices[i*(1+surface->resolution_n)+j] = surface->evaluate(float(i)/surface->resolution_m, float(j)/surface->resolution_n);
-  }
+
+  ControlPoints() : ObjectData{RenderDataHandler{GL_POINT,false}} {}
+
+
+
 };
-
-template<class T>
-class GridUpdater : public ObjectDataUpdaterPlus {
-  std::shared_ptr<T> surface;
-public:
-  GridUpdater(std::shared_ptr<T> surface) : ObjectDataUpdaterPlus{GL_LINES, true}, surface{surface} {}
-  virtual void update(ObjectData& data) const override {
-    data.vertices.resize((surface->resolution_m+1)*(surface->resolution_n+1));
-    for (GLuint i=0; i<=surface->resolution_m; ++i)
-      for (GLuint j=0; j<=surface->resolution_n; ++j) 
-        data.vertices[i*(1+surface->resolution_n)+j] = surface->evaluate(float(i)/surface->resolution_m, float(j)/surface->resolution_n);
-
-    data.indices.resize(surface->resolution_m*2*(surface->resolution_n+1) + surface->resolution_n*2*(surface->resolution_m+1));
-    GLuint index_offset = 0;
-    for (GLuint i=0; i<=surface->resolution_m; ++i) {
-      for (GLuint j=0; j<surface->resolution_n; ++j) {
-        data.indices[index_offset++] = i*(surface->resolution_n+1)+j;
-        data.indices[index_offset++] = i*(surface->resolution_n+1)+j+1;
-      }
-    }
-    for (GLuint j=0; j<=surface->resolution_n; ++j) {
-      for (GLuint i=0; i<surface->resolution_m; ++i) {
-        data.indices[index_offset++] = i*(surface->resolution_n+1)+j;
-        data.indices[index_offset++] = (i+1)*(surface->resolution_n+1)+j;
-      }
-    }
-  }
-};
-
-template<class T>
-struct FaceUpdater : public ObjectDataUpdaterPlus {
-  std::shared_ptr<T> surface;
-public:
-  FaceUpdater(std::shared_ptr<T> surface) : ObjectDataUpdaterPlus{GL_TRIANGLES, true}, surface{surface} {}
-  virtual void update(ObjectData& data) const override {
-    data.vertices.resize((surface->resolution_m+1)*(surface->resolution_n+1));
-    for (GLuint i=0; i<=surface->resolution_m; ++i)
-      for (GLuint j=0; j<=surface->resolution_n; ++j)
-        data.vertices[i*(1+surface->resolution_n)+j] = surface->evaluate(float(i)/surface->resolution_m, float(j)/surface->resolution_n);
-
-    data.indices.resize(surface->resolution_m*surface->resolution_n*6);
-    GLuint index_offset = 0;
-    for (GLuint i=0; i<surface->resolution_m; ++i) {
-      for (GLuint j=0; j<surface->resolution_n; ++j) {
-        GLuint index[4] = {
-              i*(surface->resolution_n+1)+j,
-              i*(surface->resolution_n+1)+j+1,
-          (i+1)*(surface->resolution_n+1)+j,
-          (i+1)*(surface->resolution_n+1)+j+1,
-        };
-        data.indices[index_offset++] = index[0];
-        data.indices[index_offset++] = index[1];
-        data.indices[index_offset++] = index[2];
-        data.indices[index_offset++] = index[1];
-        data.indices[index_offset++] = index[3];
-        data.indices[index_offset++] = index[2];
-      }
-    }
-  }
-};
-
-// template<T>
-
-
 
 class BezierSurfaceObject {
 
+  ControlPoints control_points;
+
 public:
+
+  ///@note just store vertices in each ObjectData, since it's too complicated to modify the capsulation
 
 
   std::shared_ptr<BezierSurface> surface; // data this show be kept well
 
-  struct {
-    std::shared_ptr<PointUpdater<BezierSurface>> point;
-    std::shared_ptr<GridUpdater<BezierSurface>> grid;
-    std::shared_ptr<FaceUpdater<BezierSurface>> face;
-  } updater = {
-    std::make_shared<PointUpdater<BezierSurface>>(surface),
-    std::make_shared<GridUpdater<BezierSurface>>(surface),
-    std::make_shared<FaceUpdater<BezierSurface>>(surface),
-  };
+  /// @brief display mode
+  /// @details 
+  ///   - 1: show mesh points
+  ///   - 2: show mesh grid,
+  ///   - 4: show mesh faces,
+  ///   - 8: show control points
+  ///   - 16: show control grid,
+  ///   - 32: show control faces
+  unsigned mode = 0;
+  
+  inline bool if_show_mesh_points() const { return mode & 1; }
+  inline bool if_show_mesh_grid() const { return mode & 2; }
+  inline bool if_show_mesh_faces() const { return mode & 4; }
+  inline bool if_show_control_points() const { return mode & 8; }
+  inline bool if_show_control_grid() const { return mode & 16; }
+  inline bool if_show_control_faces() const { return mode & 32; }
 
 
   public:

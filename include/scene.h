@@ -6,6 +6,7 @@
 #include <utils.h>  // WindowGuard
 
 class Light;
+class Object;
 class ObjectData;
 class ObjectBase;
 class ObjectDataUpdater;
@@ -29,6 +30,7 @@ struct SceneData {
 
 
 #include <object_data.h>
+#include <picking.h>
 
 class Controller;
 
@@ -62,7 +64,7 @@ public:
   void clear();
 
   /// @brief render the scene
-  void render();
+  void render(PickingShader* p = nullptr);
 
   /// @brief update the scene
   void update();
@@ -114,6 +116,7 @@ public:
   void KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
   void CursorMoveCallback(GLFWwindow* window, double xpos, double ypos);
   void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+  // void 
 
   SceneData& getData();
 

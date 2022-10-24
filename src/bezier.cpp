@@ -1,6 +1,6 @@
 #include <utils.h>
 #include <bezier.h>
-
+#include <sampler.hpp>
 #include <delaunator.h>
 
 
@@ -66,7 +66,6 @@ Vertex BezierCurve::evaluate(GLfloat t) const {
 
 #include <render_data.h>
 #include <object_data.h>
-#include <simpson.h>
 
 void BezierCurve::update(ObjectData &data) const {
   switch(mode) {
@@ -111,7 +110,6 @@ Vertex BezierSurface::evaluate(const std::vector<std::vector<vec3>> &control_poi
              &du  = weighted_sum(control_points, dcu, cv),
              &dv  = weighted_sum(control_points, cu, dcv);
 
-  // return {pos,du};
   auto norm = evalue(cross(du,dv));
   if (norm==vec3(0)) {
     norm = evaluate(control_points, u+(.5-u)*.001, v+(.5-v)*.001).normal;
@@ -161,51 +159,16 @@ double BezierSurface::cur_measure(double u, double v, double order) const {
 #include <simpson.h>
 
 void BezierSurface::update(ObjectData &data) const {
-  
   switch (mode) {
     case Triangulation::adaptive: {
-      // adaptive triangulation
-      std::function<double(double,double)> f = [this](double u, double v) { return cur_measure(u,v,order); };
-      auto sample = Simpson::fast_partition(f, dS, 0, 1, 0, 1);
-      std::vector<double> uv_coord;
-      uv_coord.reserve(sample.size()*2);
-      std::cout << sample.size() << std::endl;
-      data.vertices.clear();
-      data.vertices.reserve(sample.size());
-      for (auto [u,v]: sample) {
-        data.vertices.push_back(evaluate(u, v));
-        uv_coord.push_back(u);
-        uv_coord.push_back(v);
-      }
-      data.indices = delaunator::Delaunator(uv_coord).triangles;
+      AdaptiveSampler<BezierSurface> s{*this};
+      data.vertices = std::move(s.vertices);
+      data.indices = std::move(s.mesh_indices);
     } break;
-
     case Triangulation::normal: {
-      // my basic triangulation
-      data.vertices.clear();
-      data.vertices.reserve((resolution_m+1)*(resolution_n+1));
-      for (GLuint i=0; i<=resolution_m; ++i)
-        for (GLuint j=0; j<=resolution_n; ++j)
-          data.vertices.push_back(evaluate(float(i)/resolution_m, float(j)/resolution_n));
-      data.indices.clear();
-      data.indices.reserve(resolution_m*resolution_n*6);
-      for (GLuint i=0; i<resolution_m; ++i) {
-        for (GLuint j=0; j<resolution_n; ++j) {
-          GLuint index[4] = {
-                i*(resolution_n+1)+j,
-                i*(resolution_n+1)+j+1,
-            (i+1)*(resolution_n+1)+j,
-            (i+1)*(resolution_n+1)+j+1,
-          };
-          data.indices.push_back(index[0]);
-          data.indices.push_back(index[1]);
-          data.indices.push_back(index[2]);
-          data.indices.push_back(index[1]);
-          data.indices.push_back(index[3]);
-          data.indices.push_back(index[2]);
-        }
-      }
-
+      Sampler<BezierSurface> s{*this};
+      data.indices = std::move(s.mesh_indices);
+      data.vertices = std::move(s.vertices);
     } break;
   }
 }
