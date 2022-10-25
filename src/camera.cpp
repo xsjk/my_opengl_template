@@ -65,3 +65,14 @@ void Camera::follow(const Light& light) {
   }
   
 }
+
+
+vec3 Camera::camera_to_world(const vec3& screen_coordinate) const {
+  vec4 pos = inverse(matrix()) * vec4(screen_coordinate, 1.0);
+  return pos / pos.w;
+}
+
+vec3 Camera::world_to_camera(const vec3& world_coordinate) const {
+  vec4 pos = matrix() * vec4(world_coordinate,1.0);
+  return pos / pos.w;
+}

@@ -36,11 +36,11 @@ public:
 #include <object_data_updater.h>
 
 // contain updaters and shader
-class Object {
-  public:
-    std::list<ObjectDataUpdaterPlus> updaters;
+// class Object {
+//   public:
+//     std::list<ObjectDataUpdaterPlus> updaters;
 
-};
+// };
 
 
 

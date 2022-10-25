@@ -24,6 +24,9 @@ public:
 
   void follow(const Light& light);
 
+  vec3 camera_to_world(const vec3&) const;
+  vec3 world_to_camera(const vec3&) const;
+
 };
 
 

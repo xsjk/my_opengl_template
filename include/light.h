@@ -26,7 +26,7 @@ struct Light {
   vec3 diffuse    = {0.5, 0.5, 0.5};
   vec3 specular   = {1.0, 1.0, 1.0};
 
-  static RenderDataHandler display;
+  static RenderData display;
 
   void follow(const Camera&);
 

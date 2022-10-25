@@ -7,7 +7,7 @@
 
 std::unordered_map<GLFWwindow*,Window*> Window::windows;
 Window::Guard Window::guard;
-std::unordered_map<std::shared_ptr<RenderData>, std::pair<GLuint, GLuint>> Window::BOs;
+Window* Window::focused_window = nullptr;
 
 Window::Window(const int width, const int height, const std::string &title)
   : width{width}, height{height}
@@ -22,40 +22,32 @@ Window::Window(const int width, const int height, const std::string &title)
   glEnable(GL_ALPHA_TEST);
   glEnable(GL_BLEND);  
   glEnable(GL_PROGRAM_POINT_SIZE);  
-  // glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
   
-  pickingTexture.init(width, height);
-  pickingShader.init();
+  picking.init(width, height);
 }
 
 Window::~Window() {
   glfwDestroyWindow(windowHandle);
 }
 
-void Window::setup(RenderDataHandler& handle) {
+void Window::setup(RenderData& handle) {
   if(!handle) return;
-  GLuint &VAO = handle.VAO, &VBO = handle.VBO, &EBO = handle.EBO;
+  GLuint &VAO = handle.VAO;
   if (VAOs.find(handle.data) == VAOs.end()) {
     glGenVertexArrays(1, &VAO); 
     VAOs.emplace(handle.data, VAO); // record the VAO for this mesh in this window
   } else {
     VAO = VAOs.at(handle.data); // get the VAO for this mesh in this window
   }
-  glBindVertexArray(VAO);
-  if (BOs.find(handle.data) == BOs.end()) {
-    handle.genBO();
-    BOs.emplace(handle.data, std::make_pair(VBO, EBO)); // record the VBO and EBO for this mesh for all windows
-  } else {
-    auto [vbo, ebo] = BOs.at(handle.data);
-    VBO = vbo,  EBO = ebo;
-  }
-  handle.setup();
+  handle.bindVAO();
+  handle.setupBO();
+  handle.setupVAO();
 }
 
-void Window::setup(std::vector<RenderDataHandler>& handles) {
+void Window::setup(std::vector<RenderData>& handles) {
   for(auto &handle : handles)
     setup(handle);
 }
@@ -63,28 +55,24 @@ void Window::setup(std::vector<RenderDataHandler>& handles) {
 void Window::setup() {
   makeCurrent();
   for (auto &scene : scenes) {
-    for (auto&[_, objects] : scene.renderData)
+    for (auto&[_, objects] : scene->renderData)
       for (auto &object : objects)
-        setup(object.data);
-    for (auto &light : scene.lights)
-      setup(light.display);
+        setup(object->data);
+    for (auto &light : scene->lights)
+      setup(light->display);
   }
 }
 
 void Window::update() {
   makeCurrent();
   checkKeyPressing();
+  update_cursor();
   updateObjectID();
   for(auto& scene: scenes) {
-    scene.update();
-    scene.render();
+    scene->update();
+    scene->render();
   }
-  {
-    pickingTexture.activate();
-    for(auto& scene: scenes)
-      scene.render(&pickingShader);
-    pickingTexture.deactivate();
-  }
+  picking.update(scenes);
   glfwSwapBuffers(windowHandle);
   glfwPollEvents();
 }
@@ -109,12 +97,12 @@ void Window::checkKeyPressing() {
   for(int k: {GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_A, GLFW_KEY_D, GLFW_KEY_SPACE, GLFW_KEY_LEFT_SHIFT, GLFW_KEY_EQUAL, GLFW_KEY_MINUS})
     if(glfwGetKey(windowHandle, k) == GLFW_PRESS)
       for(auto& scene: scenes)
-        scene.KeyboardCallback(windowHandle, k, glfwGetKeyScancode(k), GLFW_PRESSING, modifierKeys);
+        scene->KeyboardCallback(windowHandle, k, glfwGetKeyScancode(k), GLFW_PRESSING, modifierKeys);
 }
 
-void Window::add(Scene& scene) {
+void Window::add(Handler<Scene> scene) {
   /// @todo generate VAOs, VBOs and EBOs is necessary
-  scenes.push_back(scene);
+  scenes.emplace_back(scene);
 }
 
 void Window::makeCurrent() {
@@ -165,7 +153,7 @@ GLFWwindow* Window::Guard::createWindowHandle(const int width, const int height,
   return window;
 }
 
-void Window::update_cursor_pos() {
+void Window::update_cursor() {
   double x, y;
   switch (input_mode) {
     case GLFW_CURSOR_DISABLED:
@@ -182,15 +170,44 @@ void Window::update_cursor_pos() {
 }
 
 void Window::updateObjectID() {
-  update_cursor_pos();
-  auto res = pickingTexture.ReadPixel(cursor_pos[0], cursor_pos[1]);
-  unsigned &old_ID = current_object_ID;
-  unsigned new_ID = round(res[0]);
+  
+  unsigned &old_ID = picking_object_ID;
+  picking.get_current(cursor_pos);
+  unsigned new_ID = picking.current;
   if(old_ID != new_ID){
-    try { ObjectData::idToObjectData.at(new_ID)->mouseover(); } catch(std::out_of_range& e) { std::cerr << "mouseover " << new_ID << ' ' << e.what() << std::endl; }
-    try { ObjectData::idToObjectData.at(old_ID)->mouseout(); } catch(std::out_of_range& e) { std::cerr << "mouseout " << old_ID << ' ' << e.what() << std::endl; }
+    try { 
+      ObjectData* new_obj = ObjectData::idToObjectData.at(new_ID);
+      if (new_obj->data.draw_mode==GL_POINTS) {
+        new_obj->mouseover(picking.pointID); 
+      } else {
+        new_obj->mouseover();
+      }
+    } catch(std::out_of_range& e) { 
+      // std::cerr << "mouseover " << new_ID << ' ' << e.what() << std::endl; 
+    }
+    try { ObjectData::idToObjectData.at(old_ID)->mouseout(); } catch(std::out_of_range& e) { 
+      // std::cerr << "mouseout " << old_ID << ' ' << e.what() << std::endl; 
+    }
     old_ID = new_ID;
   } 
+
+
+  // ondrag
+  static ObjectData* dragged_obj = nullptr;
+  static unsigned dragging_point_ID = 0;
+  switch (glfwGetMouseButton(windowHandle, GLFW_MOUSE_BUTTON_LEFT)) {
+    case GLFW_PRESS:
+      if(dragged_obj){
+        dragged_obj->ondrag(cursor_pos.x,cursor_pos.y,dragging_point_ID);
+      } else {
+        dragged_obj = picking.current_obj;
+        dragging_point_ID = picking.pointID;
+      }
+      break;
+    case GLFW_RELEASE:
+      dragged_obj = nullptr;
+      break;
+  }
 }
 
 void Window::bindCallbacks(GLFWwindow* window) {
@@ -253,46 +270,67 @@ void Window::bindCallbacks(GLFWwindow* window) {
         }
     }
     for(auto& scene:Window::windows.at(w)->scenes) 
-      scene.KeyboardCallback(w,k,s,a,m);
+      scene->KeyboardCallback(w,k,s,a,m);
   });
   glfwSetCursorPosCallback(window,[](GLFWwindow* w, double x, double y) {
-
     auto &window = *Window::windows.at(w);
+
+    // cursormove
     static double x_ = x, y_ = y;
-    if(window.focused)     
-      for(auto& scene:window.scenes) 
-        scene.CursorMoveCallback(w,x-x_,y-y_);
+    if(window.focused) {  
+      Scene* focused_scene = nullptr;
+      for(auto& scene:window.scenes) {
+        scene->CursorMoveCallback(w,x-x_,y-y_);
+        if (scene->display.contains(window.cursor_pos))
+          focused_scene = scene.get();
+      }
+      window.focused_scene = focused_scene;
+    }
     x_ = x; y_ = y;
 
-    // window.updateObjectID();
-    // put this to mainloop
-    
+    // ondrag
+    auto& pos = window.cursor_pos;
+
+    // mouse move
+    if (window.picking.current_obj) {
+      window.picking.current_obj->mousemove(pos.x,pos.y,window.picking.pointID);
+    }
+
   });
   glfwSetMouseButtonCallback(window,[](GLFWwindow* w, int b, int a, int m) {
     Window& window = *Window::windows.at(w);
-    
     window.updateObjectID();
     try {
+      ObjectData& o = *ObjectData::idToObjectData.at(window.picking_object_ID);
       switch(a) {
         case GLFW_PRESS:
-          ObjectData::idToObjectData.at(window.current_object_ID)->onclick();
+          if (o.data.draw_mode==GL_POINTS) {
+            o.onclick(b,m,window.picking.pointID);
+          } else {
+            o.onclick(b,m);
+          }
           break;
         case GLFW_RELEASE:
-          ObjectData::idToObjectData.at(window.current_object_ID)->onrelease();
+          if (o.data.draw_mode==GL_POINTS) {
+            o.onrelease(b,m,window.picking.pointID);
+          } else {
+            o.onrelease(b,m);
+          }
           break;
       }
     } catch(std::out_of_range& e) {
-      std::cerr << "mouse button at " << window.current_object_ID << ' ' <<e.what() << std::endl;
+      // std::cerr << "mouse button at " << window.current_object_ID << ' ' <<e.what() << std::endl;
     }
-    
   });
 
   glfwSetScrollCallback(window,[](GLFWwindow* w, double x, double y) {
     for(auto& scene:Window::windows.at(w)->scenes) 
-      scene.ScrollCallback(w,x,y);
+      scene->ScrollCallback(w,x,y);
   });
   glfwSetWindowFocusCallback(window,[](GLFWwindow* w, int f) {
-    Window::windows.at(w)->focused = f;
+    Window::focused_window = Window::windows.at(w);
+    Window::focused_window->focused = f;
+    std::cout << "foucus on " << Window::focused_window << std::endl;
   });
   // glfwSetFramebufferSizeCallback(window,[](GLFWwindow* w, int x, int y) {
   // });

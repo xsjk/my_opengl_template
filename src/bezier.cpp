@@ -70,15 +70,15 @@ Vertex BezierCurve::evaluate(GLfloat t) const {
 void BezierCurve::update(ObjectData &data) const {
   switch(mode) {
     case Triangulation::adaptive: {
-      data.vertices.clear();
+      data.vertices().clear();
       std::function<double(double)> f = [this](double t) { return cur_measure(t); };
       for(auto t: Simpson::partition(f, 0.5, 0, 1))
-        data.vertices.push_back(evaluate(t));  
+        data.vertices().push_back(evaluate(t));  
     } break;
     case Triangulation::normal: {
-      data.vertices.resize(resolution+1);  
+      data.vertices().resize(resolution+1);  
       for (GLuint i=0; i<=resolution; ++i)
-        data.vertices[i] = evaluate(float(i)/resolution);
+        data.vertices()[i] = evaluate(float(i)/resolution);
     } break;
   }  
 }
@@ -91,10 +91,6 @@ BezierSurface::BezierSurface(int m, int n)
 BezierSurface::BezierSurface(const std::vector<std::vector<vec3>> &control_points) 
   : ObjectDataUpdaterPlus{GL_TRIANGLES, true} , control_points{control_points} {}
 
-
-void BezierSurface::set_control_point(int i, int j, vec3 point) {
-  control_points[i][j] = point;
-}
 
 Vertex BezierSurface::evaluate(const std::vector<std::vector<vec3>> &control_points,
                                GLfloat u, GLfloat v) {
@@ -162,13 +158,13 @@ void BezierSurface::update(ObjectData &data) const {
   switch (mode) {
     case Triangulation::adaptive: {
       AdaptiveSampler<BezierSurface> s{*this};
-      data.vertices = std::move(s.vertices);
-      data.indices = std::move(s.mesh_indices);
+      data.vertices() = std::move(s.vertices);
+      data.indices() = std::move(s.mesh_indices);
     } break;
     case Triangulation::normal: {
       Sampler<BezierSurface> s{*this};
-      data.indices = std::move(s.mesh_indices);
-      data.vertices = std::move(s.vertices);
+      data.indices() = std::move(s.mesh_indices);
+      data.vertices() = std::move(s.vertices);
     } break;
   }
 }
@@ -195,7 +191,7 @@ std::vector<BezierSurface> BezierSurface::read(const std::string &path) {
       BezierSurface s(m,n);
       for(GLuint j = 0 ; j < m ; ++j) 
         for(GLuint k = 0 ; k < n ; ++k)
-          s.set_control_point(j,k,position[indices[i][j][k]]);
+          s.control_points[j][k] = position[indices[i][j][k]];
       result.push_back(s);
     }
     return result;

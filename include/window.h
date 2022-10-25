@@ -6,12 +6,12 @@
 #include <shader.h>
 #include <picking.h>
 
-class RenderDataHandler;
 class RenderData;
+class BufferData;
 
 class Window {
 
-  void update_cursor_pos();
+  void update_cursor();
 
   void updateObjectID();
 
@@ -40,15 +40,15 @@ public:
    * 
    * @param scene 
    */
-  void add(Scene &scene);
+  void add(Handler<Scene> scene);
 
   /// @brief generate VAOs, VBOs and EBOs for all meshes in the window
   void setup();
 
   /// @brief generate VAOs, VBOs and EBOs for the mesh
   /// @param mesh: the mesh whose VAOs, VBOs and EBOs are to be generated
-  void setup(RenderDataHandler&);
-  void setup(std::vector<RenderDataHandler>&);
+  void setup(RenderData&);
+  void setup(std::vector<RenderData>&);
 
   /// @brief update the window (render all scenes and process events)
   void update();
@@ -64,12 +64,16 @@ public:
   /// @param bool: whether to setup all windows before starting the main loop
   static void mainloop(bool setup = true);
   
-  std::vector<Scene> scenes;
+  std::vector<Handler<Scene>> scenes;
+  unsigned focused_scene_ID;
 
   /// @brief the PickingTexture for the window
-  PickingTexture pickingTexture;
-  PickingShader pickingShader;
-  unsigned current_object_ID = 0;
+  Picking picking;
+  unsigned picking_object_ID = 0;
+  Scene* focused_scene = nullptr;
+  static Window* focused_window;
+
+  
 
 private:
 
@@ -109,11 +113,10 @@ private:
   // use static so that it can be accessed by the static callback functions and then call the member
   static std::unordered_map<GLFWwindow*,Window*> windows;
 
-  // use member since VAOs cannot be shared by different windows
-  std::unordered_map<std::shared_ptr<RenderData>, GLuint> VAOs;
+  // since VAOs cannot be shared by different windows we need to store them in the window
+  std::unordered_map<Handler<BufferData>, GLuint> VAOs;
 
-  // use static since VBOs and EBOs can be shared by all windows 
-  static std::unordered_map<std::shared_ptr<RenderData>, std::pair<GLuint, GLuint>> BOs;
+  // since VBOs and EBOs can be shared by all windows we don't need to record them in the window
 
 };
 

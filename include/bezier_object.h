@@ -8,29 +8,57 @@
 #include <object_data_updater.h>
 
 
-/// alternative control points by clicking
-class ControlPoints : public ObjectData {
-
-  std::vector <vec3> points;
-
-public:
-
-  ControlPoints() : ObjectData{RenderDataHandler{GL_POINT,false}} {}
-
-
-
-};
-
 class BezierSurfaceObject {
 
-  ControlPoints control_points;
-
 public:
+
+  // buffer objects
+  Handler<VertexBufferObject> control_points_VBO, surface_VBO;
+  Handler<ElementBufferObject> control_points_edge_EBO, control_points_face_EBO, 
+                              surface_points_EBO, surface_edge_EBO, surface_face_EBO;
+
+
+  /// derive from ObjectData to rewrite mouse callback
+  class ControlPointsObj : public ObjectData {
+    BezierSurfaceObject& parent;
+    bool is_drag;
+  public:
+    ControlPointsObj(BezierSurfaceObject& s);
+    // virtual void onclick(int button, int mod, int pointID) override;
+    // virtual void onrelease(int button, int mod, int pointID) override;
+    virtual void ondrag(unsigned x, unsigned y, int pointID) override;
+    virtual void mouseover(int) override;
+    virtual void onclick(int,int,int) override;
+  };
+
+
 
   ///@note just store vertices in each ObjectData, since it's too complicated to modify the capsulation
 
 
-  std::shared_ptr<BezierSurface> surface; // data this show be kept well
+  Handler<BezierSurface> surface; // data this show be kept well
+
+  
+  Handler<ControlPointsObj> control_points{*this};
+  
+  Handler<ObjectData> control_points_edge{
+    RenderData{control_points_VBO, control_points_edge_EBO, GL_LINES}
+  };
+  Handler<ObjectData> control_points_face{
+    RenderData{control_points_VBO, control_points_face_EBO, GL_TRIANGLES}
+  };
+
+  Handler<ObjectData> surface_points{
+    RenderData{surface_VBO, std::nullopt, GL_POINTS}
+  };
+  Handler<ObjectData> surface_edge{
+    RenderData{surface_VBO, surface_edge_EBO, GL_LINES}
+  };
+  Handler<ObjectData> surface_face{
+    RenderData{surface_VBO, surface_face_EBO, GL_TRIANGLES}
+  };
+
+
 
   /// @brief display mode
   /// @details 
@@ -50,12 +78,20 @@ public:
   inline bool if_show_control_faces() const { return mode & 32; }
 
 
-  public:
-    /// @brief create bezier surface from a single surface
-    /// @param surface 
-    BezierSurfaceObject(const BezierSurface& surface);
+public:
+  /// @brief create bezier surface from a single surface
+  /// @param surface 
+  BezierSurfaceObject(const BezierSurface& surface);
+
+  void set_control_point(unsigned i, unsigned j, vec3 point);
 
 
+
+  void resample();
+
+  void show(Handler<ObjectData>);
+
+  void hide(Handler<ObjectData>);
 
 };
 

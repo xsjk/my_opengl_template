@@ -17,7 +17,7 @@ void Light::follow(const Camera& camera) {
   
 }
 
-RenderDataHandler Light::display {
+RenderData Light::display {
   [](GLfloat t, GLfloat u) { return vec3(sin(u)*cos(t), cos(u), sin(u)*sin(t)); },
   0, 2*PI, PI/12, 
   0, PI, PI/120

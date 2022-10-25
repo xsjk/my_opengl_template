@@ -267,16 +267,16 @@ void BsplineCurve<V>::update(ObjectData &data) const {
   switch (mode) {
     case Triangulation::normal:
       // normal case
-      data.vertices.resize(resolution+1);  
+      data.vertices().resize(resolution+1);  
       for (GLuint i=0; i<=resolution; ++i)
-        data.vertices[i] = evaluate(float(i)/resolution);
+        data.vertices()[i] = evaluate(float(i)/resolution);
       break;
     case Triangulation::adaptive:
       // adaptive case
-      data.vertices.clear();
+      data.vertices().clear();
       std::function<double(double)> f = [this](double t) { return cur_measure(t); };
       for(auto t: Simpson::partition(f, 0.5, 0, 1))
-        data.vertices.push_back(evaluate(t));
+        data.vertices().push_back(evaluate(t));
   }
 }
 
@@ -369,13 +369,13 @@ void BsplineSurface<V>::update(ObjectData &data) const {
   switch (mode) {
     case Triangulation::adaptive: {
       AdaptiveSampler<BsplineSurface<V>> s{*this};
-      data.vertices = std::move(s.vertices);
-      data.indices = std::move(s.mesh_indices);
+      data.vertices() = std::move(s.vertices);
+      data.indices() = std::move(s.mesh_indices);
     } break;
     case Triangulation::normal: {
       Sampler<BsplineSurface<V>> s{*this};
-      data.indices = std::move(s.mesh_indices);
-      data.vertices = std::move(s.vertices);
+      data.indices() = std::move(s.mesh_indices);
+      data.vertices() = std::move(s.vertices);
     } break;
   }
   return;

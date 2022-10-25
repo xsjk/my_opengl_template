@@ -159,6 +159,8 @@ void ObjectShader::set(const Light& light, GLuint i) const {
 
 void ObjectShader::draw(const ObjectData& object) const {
   setVec3("color", object.get_color());
+  setFloat("opacity", object.get_opacity());
+  setFloat("point_size",object.get_point_size());
   setMat4("model", object.matrix());
   setFloat("time", glfwGetTime());  
   object.draw();
@@ -207,18 +209,3 @@ void LightShader::draw(const Light& light) const {
 }
 
 
-
-void PickingShader::set(const Camera& camera) const {
-  setMat4("camera", camera.matrix());
-}
-
-
-void PickingShader::init() {
-  Shader::init("shader/picking.vs", "shader/picking.fs");
-}
-
-void PickingShader::draw(const ObjectData& object) const {
-  setMat4("model", object.matrix());
-  setVec3("ID", {float(object.get_ID()),0.0,0.0});
-  object.draw();
-}

@@ -6,7 +6,7 @@
 #include <utils.h>  // WindowGuard
 
 class Light;
-class Object;
+// class Object;
 class ObjectData;
 class ObjectBase;
 class ObjectDataUpdater;
@@ -19,8 +19,8 @@ class BezierSurfaceObject;
 
 struct SceneData {
 
-  std::vector<Light> lights;
-  std::unordered_map<ObjectShader, std::vector<ObjectData>, std::hash<GLuint>> renderData;
+  std::vector<Handler<Light>> lights;
+  std::unordered_map<ObjectShader, std::vector<Handler<ObjectData>>, std::hash<GLuint>> renderData;
   std::unordered_map<std::string, ObjectBase*> objects;
 
   GLint lightCarried = -1;
@@ -35,7 +35,7 @@ struct SceneData {
 class Controller;
 
 class Scene {
-  std::shared_ptr<SceneData> data;
+  Handler<SceneData> data;
   std::shared_ptr<Controller> controller;
 
   vec3 bg_color = {0.1f, 0.2f, 0.3f};
@@ -50,18 +50,20 @@ public:
   Scene(GLint x, GLint y, GLsizei width, GLsizei height);
 
   Display display;
+  Camera& camera = display.camera;
   
   GLint & lightCarried = data->lightCarried;
   GLuint & lightCurrent = data->lightCurrent;
   
 
-  std::vector<Light>& lights = data->lights;
-  std::unordered_map<ObjectShader, std::vector<ObjectData>, std::hash<GLuint>>& renderData = data->renderData;
+  std::vector<Handler<Light>>& lights = data->lights;
+  std::unordered_map<ObjectShader, std::vector<Handler<ObjectData>>, std::hash<GLuint>>& renderData = data->renderData;
   std::unordered_map<std::string, ObjectBase*> objects = data->objects;
   
 
   /// @brief clear scene with bg_color
   void clear();
+  void clear(const vec3& color);
 
   /// @brief render the scene
   void render(PickingShader* p = nullptr);
@@ -71,12 +73,11 @@ public:
 
   /// @brief add light to the scene
   /// @param Light: the light to be added
-  void add(const Light &);
+  void add(Handler<Light>);
 
   /// @brief add object to the scene
   /// @param ObjectData: the object to be added
-  void add(const ObjectData&);
-  void add(BezierSurfaceObject&);
+  void add(Handler<ObjectData>);
 
   // void add(ObjectDataUpdater&);
   // template<class T, typename U = std::enable_if_t<std::is_base_of_v<ObjectDataUpdater, T>>>
@@ -87,11 +88,13 @@ public:
   /// @brief add object to the scene
   /// @param ObjectData: the object to be added 
   /// @param ObjectShader: the shader used for this object
-  void add(const ObjectData&, const ObjectShader&);
+  void add(Handler<ObjectData>, const ObjectShader&);
 
   /// @brief add object shader to the scene
   /// @param ObjectShader: the shader to be added
   void add(const ObjectShader&);
+
+  void add(const BezierSurfaceObject&);
 
 
   /// @brief add object to the scene
@@ -123,6 +126,8 @@ public:
   bool operator==(const Scene &other) const;
 
   SETTER_GETTER(bg_color, vec3)
+
+  
 
 
   static ObjectShader defaultShader;

@@ -23,6 +23,12 @@ class Display {
     Camera camera;
     void activate();
     Display(GLint x, GLint y, GLsizei width, GLsizei height);
+    
+    bool contains(GLuint x, GLuint y) const;
+    bool contains(glm::vec<2, unsigned> pos) const;
+
+    vec2 screen_to_camera(const vec2& p) const;
+    vec2 camera_to_screen(const vec2& p) const;
 };
 
 

@@ -76,8 +76,6 @@ public:
 /// @brief the measure of bending at (u,v) (not equal to curvature!)
   double cur_measure(double u, double v, double order=3) const;
 
-  void set_control_point(int i, int j, vec3 point);
-
   virtual void update(ObjectData&) const override;
 
   

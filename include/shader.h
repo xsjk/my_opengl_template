@@ -64,16 +64,6 @@ class ObjectShader : public Shader {
 
 
 
-/// @brief this shader is only used for uploading the ID of each object to the GPU
-class PickingShader : public Shader {
-  static const char* vs_file, *fs_file;
-  public:
-    using Shader::Shader;
-    void set(const Camera &) const;
-    void init();
-    void draw(const ObjectData &) const;
-};
-
 
 class LightShader : public Shader {
   public:

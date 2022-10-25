@@ -29,7 +29,7 @@ struct Light {
 uniform Light light[MAX_LIGHTS];
 uniform vec3 viewPos;
 uniform mat4 model;
-
+uniform float opacity;
 
 in VS_OUT {
     vec3 normal;
@@ -118,7 +118,7 @@ void main() {
     vec4 lightColor = vec4(0.0);
     for (int i = 0; i < MAX_LIGHTS; i++)
         lightColor += calc_light(light[i], fs_in.normal, fs_in.pos, viewPos);
-    FragColor = lightColor * vec4(fs_in.color, 1.0);
+    FragColor = lightColor * vec4(fs_in.color, opacity);
 
     // gamma correction
     float gamma = 2.2;

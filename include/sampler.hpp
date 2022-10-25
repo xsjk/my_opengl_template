@@ -72,7 +72,7 @@ Sampler<S>::Sampler(const S& surface, glm::vec<2,GLuint> resolution)
     for (auto j=0; j<=n; ++j)
       vertices.push_back(surface.evaluate(float(i)/m, float(j)/n));
   mesh_indices.reserve(m*n*6);
-  line_indices.reserve(m*n*2 + n + m);
+  line_indices.reserve(2*(m*n*2 + n + m));
   for (auto i=0; i<m; ++i) {
     for (auto j=0; j<n; ++j) {
       const unsigned idx[4] = {index(i,j), index(i,j+1), index(i+1,j), index(i+1,j+1)};

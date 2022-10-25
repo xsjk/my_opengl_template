@@ -12,7 +12,11 @@ ObjectShader Scene::defaultShader;
 LightShader Scene::lightShader;
 
 void Scene::clear() {
-  glClearColor(bg_color.r, bg_color.g, bg_color.b, 1.0f);
+  clear(bg_color);
+}
+
+void Scene::clear(const vec3& color) {
+  glClearColor(color.r, color.g, color.b, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -20,7 +24,7 @@ void Scene::render(PickingShader* pickingShader) {
 
   display.activate();
 
-  clear();
+  
 
   // draw objects (High level)
   for (auto& [name,object]: objects) {
@@ -30,12 +34,14 @@ void Scene::render(PickingShader* pickingShader) {
   // draw lights (Low level)
   if (pickingShader) {
     ///@warning pickingTexture is garanteed to be activated
+    clear(vec3(0.0f));
     pickingShader->use();
     pickingShader->set(display.camera);
     for (auto& [shader,objects]: data->renderData)
       for(auto& object:objects)
-        pickingShader->draw(object);
+        pickingShader->draw(*object);
   } else {
+    clear();
     // draw objects in renderData
     for (auto& [shader,objects]: data->renderData) {
       shader.use();
@@ -44,9 +50,10 @@ void Scene::render(PickingShader* pickingShader) {
       // std::cout << & display.camera << std::endl;
       int i = 0;
       for(auto& light:lights) 
-        shader.set(light,i++);
-      for(auto& object:objects)
-        shader.draw(object);
+        shader.set(*light,i++);
+      for(auto& object:objects) {
+        shader.draw(*object);
+      }
     }
   }
   
@@ -54,8 +61,8 @@ void Scene::render(PickingShader* pickingShader) {
   lightShader.use();
   lightShader.set(display.camera);
   for(auto& light:lights)
-    if(light.displaying || display.mode == Display::LIGHT_TRACKING)
-      lightShader.draw(light);
+    if(light->displaying || display.mode == Display::LIGHT_TRACKING)
+      lightShader.draw(*light);
 
   
 }
@@ -65,38 +72,49 @@ void Scene::update() {
   switch (display.mode) {
     case Display::FOLLOW_CAMERA:
       if(lightCarried>=0)
-        lights[lightCarried].follow(display.camera);
+        lights[lightCarried]->follow(display.camera);
       break;
     case Display::LIGHT_TRACKING:
-      display.camera.follow(lights[lightCurrent]);
+      display.camera.follow(*lights[lightCurrent]);
       break;
   }
 
-  // update objects (High level)
-  for (auto& [name,object]: objects) {
-    object->update();
-  }
+  // update objects (Low level)
+  for (auto& [_,objects]: data->renderData)
+    for (auto& object: objects) 
+      object->update();
+
 }
 
 
-void Scene::add(const Light &light) {
-  lights.push_back(light);
+void Scene::add(Handler<Light> light) {
+  lights.emplace_back(light);
 }
 
-void Scene::add(const ObjectData& object) {
+void Scene::add(Handler<ObjectData> object) {
   add(object, defaultShader);
 }
 
-void Scene::add(const ObjectData &object, const ObjectShader& shader) {
-  renderData[shader].push_back(object);
+void Scene::add(Handler<ObjectData> object, const ObjectShader& shader) {
+  renderData[shader].emplace_back(object);
+  // renderData[shader].emplace_back(std::move(object));
 }
 
-void Scene::add(const ObjectShader& objectShader) {
-  renderData.insert({objectShader,std::vector<ObjectData>{}});
+void Scene::add(const ObjectShader& shader) {
+  renderData[shader];
 }
 
 void Scene::add(const std::string& name, ObjectBase& object) {
   objects.insert({name,&object});
+}
+
+void Scene::add(const BezierSurfaceObject& obj) {
+  add(obj.control_points);
+  add(obj.control_points_edge);
+  add(obj.control_points_face);
+  add(obj.surface_face);
+  add(obj.surface_edge);
+  add(obj.surface_points);
 }
 
 // void Scene::add(ObjectDataUpdater& o)  { 
@@ -114,12 +132,12 @@ void Scene::add(const std::string& name, ObjectBase& object) {
 
 void Scene::graspLight() {
   lightCarried = lightCurrent;
-  lights[lightCarried].displaying = false;
+  lights[lightCarried]->displaying = false;
 }
 
 void Scene::dropLight() {
   if (lightCarried >= 0)
-    lights[lightCarried].displaying = true;
+    lights[lightCarried]->displaying = true;
   lightCarried = -1;
 }
 
@@ -129,8 +147,7 @@ bool Scene::isLightCarried() const {
 
 
 Scene::Scene(GLint x, GLint y, GLsizei width, GLsizei height)
-  : data{std::make_shared<SceneData>()},
-    display{x, y, width, height}
+  : display{x, y, width, height}
 {
   static bool first = true;
   if (first) {
@@ -161,6 +178,14 @@ void Scene::KeyboardCallback(GLFWwindow* window, int key, int scancode, int acti
 
             case GLFW_KEY_F3: // print current camera pos
               std::cout << display.camera.get_eye() << std::endl;
+              break;
+            case GLFW_KEY_ESCAPE:
+              std::cout << "ESC" << std::endl;
+              break;
+
+            case GLFW_KEY_ENTER:
+              std::cout << "ENTER" << std::endl;
+              break;
 
           }
           break;
@@ -168,15 +193,15 @@ void Scene::KeyboardCallback(GLFWwindow* window, int key, int scancode, int acti
           display.camera.KeyboardPressingCallback(key, mode);
           switch (key) {
             case GLFW_KEY_EQUAL: // increase light cone
-              if (lights[lightCurrent].outerCutOff < 89.0f) {
-                lights[lightCurrent].outerCutOff += 1.0f;
-                lights[lightCurrent].cutOff += 1.0f;
+              if (lights[lightCurrent]->outerCutOff < 89.0f) {
+                lights[lightCurrent]->outerCutOff += 1.0f;
+                lights[lightCurrent]->cutOff += 1.0f;
               }
               break;
             case GLFW_KEY_MINUS: // decrease light cone
-              if (lights[lightCurrent].outerCutOff > 1.0f) {
-                lights[lightCurrent].outerCutOff -= 1.0f;
-                lights[lightCurrent].cutOff -= 1.0f;
+              if (lights[lightCurrent]->outerCutOff > 1.0f) {
+                lights[lightCurrent]->outerCutOff -= 1.0f;
+                lights[lightCurrent]->cutOff -= 1.0f;
               }
               break;
           } 

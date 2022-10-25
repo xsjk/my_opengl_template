@@ -2,49 +2,73 @@
 #define _RENDER_DATA_H_
 #include <shader.h>
 #include <vertex.h>
+#include <utils.h>
+
+#include <buffer_object.hpp>
+
+struct VertexArrayObject {
+  mutable GLuint ID = 0;
+  inline void gen() const { 
+    if (ID == 0) glGenVertexArrays(1, &ID); 
+  }
+  inline void bind() const { 
+    glBindVertexArray(ID); 
+  }
+  inline void unbind() { 
+    glBindVertexArray(0); 
+  }
+  inline void init() const {
+    gen();
+  }
+};
 
 
-struct RenderData {
-  mutable GLuint VBO = 0, EBO = 0;
-  void draw_elements(GLenum mode) const;
-  void draw_arrays(GLenum mode) const;
-  std::vector<Vertex> vertices;
-  std::vector<GLuint> indices;
+struct BufferData {
+  Handler<VertexBufferObject> VBO;
+  Handler<ElementBufferObject> EBO;
 };
 
 
 class Window;
 class ObjectData;
 class ObjectDataUpdater;
-class RenderDataHandler {
+class RenderData {
 
   friend class Window;
   friend class ObjectData;
-  RenderDataHandler();
+  RenderData();
 
-// public:
-  std::shared_ptr<RenderData> data{ std::make_shared<RenderData>() };
-  GLuint VAO, &VBO{ data->VBO }, &EBO{ data->EBO };
-  std::vector<Vertex> &vertices{ data->vertices };
-  std::vector<GLuint> &indices{ data->indices };
-  GLenum draw_mode = GL_TRIANGLES;
   bool enable_EBO = true;
+
+  Handler<BufferData> data;
+
+  GLuint VAO = 0;
+  inline std::vector<Vertex> & vertices() const { return data->VBO->data; };
+  inline std::vector<GLuint> & indices() const { return data->EBO->data; };
+  
+  GLenum draw_mode = GL_TRIANGLES;
 
 public:
   
-  RenderDataHandler(GLenum draw_mode, bool enable_EBO);
-  RenderDataHandler(const ObjectDataUpdater& );
+  RenderData(GLenum draw_mode, bool enable_EBO);
+  RenderData(const ObjectDataUpdater& );
 
 
-  RenderDataHandler(
+  RenderData(
     const std::vector<Vertex>& vertices, 
     const std::optional<std::vector<GLuint>>& indices = std::nullopt, 
     GLenum mode = GL_TRIANGLES
   );
 
+  RenderData(
+    const Handler<VertexBufferObject>& VBO,
+    std::optional<Handler<ElementBufferObject>> EBO = std::nullopt,
+    GLenum mode = GL_TRIANGLES
+  );
+
   /// @brief create mesh from parameter function
   /// @param f: the function used for generation of the mesh
-  RenderDataHandler(
+  RenderData(
     std::function<vec3(GLfloat,GLfloat)> f, 
     GLfloat t_min=0, GLfloat t_max=1, GLfloat t_delta=0.05,
     GLfloat u_min=0, GLfloat u_max=1, GLfloat u_delta=0.05
@@ -52,7 +76,7 @@ public:
 
   /// @brief create curve from parameter function
   /// @param f: the function used to generate of the curve
-  RenderDataHandler(
+  RenderData(
     std::function<vec3(GLfloat)> f, 
     GLfloat t_min=0, GLfloat t_max=1, GLfloat t_delta=0.05
   );
@@ -62,30 +86,37 @@ public:
   /// @param path: the path of mesh file
   /// @param mode: the draw mode of the mesh
   /// @param enable_EBO: enable EBO or not
-  RenderDataHandler(
+  RenderData(
     const std::string &path, 
     GLenum draw_mode=GL_TRIANGLES, 
     bool enable_EBO=true
   );
 
-  void setup() const;
+  /// @brief copy
+  RenderData deepcopy() const;
+
+  void setupVAO() const;
 
   void update(GLenum) const;
 
+  /// @brief setup array buffer object
+  void genVAO();
 
-  /// @brief generate array buffer object
-  void genAO();
+  /// @brief bind array buffer object
+  void bindVAO() const;
 
-  /// @brief generate vertex buffer object and element buffer object
-  void genBO();
+  /// @brief setup vertex buffer object and element buffer object
+  void setupBO();
 
   /// @brief draw the mesh
   void draw() const;
   // void draw();
 
+  void bind() const;
+
   void load(const std::string &path);
 
-  bool operator==(const RenderDataHandler &rhs) const { return data==rhs.data; }
+  bool operator==(const RenderData &rhs) const { return data==rhs.data; }
   operator bool() { return bool(data); }
 };
 

@@ -9,19 +9,21 @@
 #include <object_data_updater.h>
 
 class Window;
+class Picking;
 // low level object
 class ObjectDataUpdater;
 class ObjectDataUpdaterPlus;
 class ObjectData : public ObjectParams, public Indexer {
 
   friend class Window;
-  static std::map<unsigned, ObjectData*> idToObjectData;
+  friend class Picking;
 
-  bool selected = false;
+  // bool selected = false;
 
 protected:
-  friend class Window;
-  RenderDataHandler data;
+  static std::map<unsigned, ObjectData*> idToObjectData;
+  RenderData data;
+  bool need_update = false; // use of dynamic draw
 
 private:
   friend class ObjectDataUpdater;
@@ -36,14 +38,15 @@ private:
   void __init__();
 
 public:
+  ObjectData(ObjectData&&);
+  ObjectData(const ObjectData&);
 
-  ~ObjectData();
+  virtual ~ObjectData();
 
   std::shared_ptr<ObjectDataUpdater> updater = nullptr;
 
   // this is an old API
-  ObjectData(const RenderDataHandler& data, vec3 color=vec3{0}, Affine affine=Affine{});
-
+  ObjectData(const RenderData& data, vec3 color=vec3{0}, Affine affine=Affine{});
 
   /// @brief create an object binding to an updater (dynamic data)
   template<class T, typename U=std::enable_if_t<std::is_base_of_v<ObjectDataUpdater,T>>>
@@ -61,24 +64,48 @@ public:
       case ObjectDataUpdater::UpdateType::STREAM: 
         set_buffer_mode(GL_STREAM_DRAW);  break;
     }
-    // (*u)(*this);
     u->update(*this); 
   }
 
   inline unsigned get_ID() const { return ID; }
 
-  virtual void onclick();
-  virtual void onrelease();
-  virtual void mouseover();
-  virtual void mouseout();
+  virtual void onclick(int button, int mods, int pointID=-1);
+  virtual void onrelease(int button, int mods, int pointID=-1);
+  virtual void ondrag(unsigned x, unsigned y, int pointID=-1);
+  virtual void mouseover(int pointID=-1);
+  virtual void mouseout(int pointID=-1);
+  virtual void mousemove(unsigned x, unsigned y, int pointID=-1);
 
-  std::vector<Vertex>& vertices = data.vertices;
-  std::vector<GLuint>& indices = data.indices;
+  virtual void MouseCallback(int button, int action, int mods) {};
 
+  inline std::vector<Vertex>& vertices() const { return data.vertices(); }
+  inline std::vector<GLuint>& indices() const { return data.indices(); }
+  
   void draw() const;
+  virtual void update();
+
+  SETTER_GETTER(need_update, bool)
 };
 
 
+// class ObjectDataHandler {
+//   std::shared_ptr<ObjectData> data;
+// public:
+//   template<typename ...T>
+//   ObjectDataHandler(T&&... args) : data(std::make_shared<ObjectData>(std::forward<T>(args)...)) {}
+
+//   ObjectDataHandler(std::shared_ptr<ObjectData> data) : data(data) {}
+
+//   inline ObjectData& operator*() { return *data; }
+//   inline ObjectData* operator->() { return data.get(); }
+
+//   inline bool operator==(const ObjectDataHandler& other) const { return data == other.data; }
+
+//   inline unsigned get_ID() const { return data->get_ID(); }
+// };
+
+
+using Object = Handler<ObjectData>;
 
 
 
