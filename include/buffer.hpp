@@ -1,5 +1,5 @@
-#ifndef _BUFFER_OBJECT_HPP_
-#define _BUFFER_OBJECT_HPP_
+#ifndef _BUFFER_HPP_
+#define _BUFFER_HPP_
 #include <defines.h>
 
 class Vertex;
@@ -48,6 +48,7 @@ struct ElementBufferObject : BufferObject<GLuint> {
     data = indices;
   }
   void draw(GLenum draw_mode) const {
+    // set_data(GL_STREAM_DRAW);
     glDrawElements(draw_mode, data.size(), GL_UNSIGNED_INT, 0);
   }
 };

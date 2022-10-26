@@ -41,7 +41,7 @@ using glm::vec4;
 
 using Color = vec3;
 
-enum class Triangulation { adaptive, normal };
+enum class Triangulation { adaptive, uniform };
 
 
 #define GLFW_PRESSING 3

@@ -105,8 +105,5 @@ public:
 // };
 
 
-using Object = Handler<ObjectData>;
-
-
 
 #endif

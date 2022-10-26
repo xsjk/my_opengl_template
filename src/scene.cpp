@@ -4,8 +4,10 @@
 #include <shader.h>
 #include <scene.h>
 #include <window.h>
-#include <object.h>
-#include <bezier_object.h>
+#include <bezier.h>
+#include <b-spline.h>
+#include <spline_surface_object.hpp>
+#include <group.h>
 
 ObjectShader Scene::defaultShader;
 
@@ -24,12 +26,6 @@ void Scene::render(PickingShader* pickingShader) {
 
   display.activate();
 
-  
-
-  // draw objects (High level)
-  for (auto& [name,object]: objects) {
-    object->draw();
-  }
 
   // draw lights (Low level)
   if (pickingShader) {
@@ -88,17 +84,25 @@ void Scene::update() {
 
 
 void Scene::add(Handler<Light> light) {
-  lights.emplace_back(light);
+  lights.emplace_back(std::move(light));
 }
 
 void Scene::add(Handler<ObjectData> object) {
-  add(object, defaultShader);
+  add(std::move(object),defaultShader);
 }
 
 void Scene::add(Handler<ObjectData> object, const ObjectShader& shader) {
-  renderData[shader].emplace_back(object);
-  // renderData[shader].emplace_back(std::move(object));
+  renderData[shader].emplace_back(std::move(object));
 }
+
+
+
+void Scene::add(Handler<Group> obj) {
+  obj->parent = this;
+  obj->init(*this);
+  groups.emplace_back(std::move(obj));
+}
+
 
 void Scene::add(const ObjectShader& shader) {
   renderData[shader];
@@ -108,14 +112,8 @@ void Scene::add(const std::string& name, ObjectBase& object) {
   objects.insert({name,&object});
 }
 
-void Scene::add(const BezierSurfaceObject& obj) {
-  add(obj.control_points);
-  add(obj.control_points_edge);
-  add(obj.control_points_face);
-  add(obj.surface_face);
-  add(obj.surface_edge);
-  add(obj.surface_points);
-}
+
+
 
 // void Scene::add(ObjectDataUpdater& o)  { 
 //   add(ObjectData{o}); 
@@ -212,6 +210,8 @@ void Scene::KeyboardCallback(GLFWwindow* window, int key, int scancode, int acti
       break;
 
   }
+  for(auto& group:groups)
+    group->KeyboardCallback(key,scancode,action,mode);
 }
 
 void Scene::CursorMoveCallback(GLFWwindow* window, double dx, double dy) {

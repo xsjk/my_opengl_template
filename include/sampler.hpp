@@ -41,7 +41,7 @@ class AdaptiveSampler {
 
   struct Line {
     unsigned i,j;
-    inline operator unsigned() const { return i^j; }
+    inline operator size_t() const { return *reinterpret_cast<const size_t*>(this); }
     inline Line(unsigned i,unsigned j) {
       if (i<j)  this->i = i, this->j = j;
       else      this->i = j, this->j = i;
@@ -124,7 +124,7 @@ AdaptiveSampler<S>::AdaptiveSampler(const S& surface, double dS, double order)
     mesh_indices = std::move(d.triangles);
 
     // get line indices from mesh_indices;
-    std::unordered_set<Line,std::hash<unsigned>> lines;
+    std::unordered_set<Line,std::hash<size_t>> lines;
     for (auto i=0; i<mesh_indices.size(); i+=3) {
       lines.emplace(mesh_indices[i], mesh_indices[i+1]);
       lines.emplace(mesh_indices[i+1], mesh_indices[i+2]);

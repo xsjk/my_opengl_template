@@ -15,7 +15,8 @@ Window::Window(const int width, const int height, const std::string &title)
   windowHandle = guard.createWindowHandle(width, height, title);
   windows.emplace(windowHandle,this);
   bindCallbacks(windowHandle);
-  glfwSetInputMode(windowHandle, GLFW_CURSOR, input_mode);
+  
+  __update__();
 
   glEnable(GL_DEPTH_TEST); 
   glEnable(GL_SCISSOR_TEST); 
@@ -155,7 +156,7 @@ GLFWwindow* Window::Guard::createWindowHandle(const int width, const int height,
 
 void Window::update_cursor() {
   double x, y;
-  switch (input_mode) {
+  switch (cursor_mode) {
     case GLFW_CURSOR_DISABLED:
       x = width/2;
       y = height/2;

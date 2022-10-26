@@ -4,7 +4,7 @@
 #include <vertex.h>
 #include <utils.h>
 
-#include <buffer_object.hpp>
+#include <buffer.hpp>
 
 struct VertexArrayObject {
   mutable GLuint ID = 0;

@@ -26,7 +26,7 @@ void RenderData::draw() const {
 void RenderData::setupVAO() const {
   if(!data) return;
   /// @warning this should be executed for each window once (though there is usually only one window)
-  glBindVertexArray(VAO);
+  bindVAO();
   bind();
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);

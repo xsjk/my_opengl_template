@@ -75,7 +75,7 @@ void BezierCurve::update(ObjectData &data) const {
       for(auto t: Simpson::partition(f, 0.5, 0, 1))
         data.vertices().push_back(evaluate(t));  
     } break;
-    case Triangulation::normal: {
+    case Triangulation::uniform: {
       data.vertices().resize(resolution+1);  
       for (GLuint i=0; i<=resolution; ++i)
         data.vertices()[i] = evaluate(float(i)/resolution);
@@ -161,7 +161,7 @@ void BezierSurface::update(ObjectData &data) const {
       data.vertices() = std::move(s.vertices);
       data.indices() = std::move(s.mesh_indices);
     } break;
-    case Triangulation::normal: {
+    case Triangulation::uniform: {
       Sampler<BezierSurface> s{*this};
       data.indices() = std::move(s.mesh_indices);
       data.vertices() = std::move(s.vertices);

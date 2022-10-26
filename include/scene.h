@@ -6,12 +6,13 @@
 #include <utils.h>  // WindowGuard
 
 class Light;
-// class Object;
+class Group;
 class ObjectData;
 class ObjectBase;
 class ObjectDataUpdater;
-class BezierSurfaceObject;
 
+template<class S>
+class SurfaceObject;
 
 #include <shader.h>
 #include <display.h>
@@ -59,6 +60,10 @@ public:
   std::vector<Handler<Light>>& lights = data->lights;
   std::unordered_map<ObjectShader, std::vector<Handler<ObjectData>>, std::hash<GLuint>>& renderData = data->renderData;
   std::unordered_map<std::string, ObjectBase*> objects = data->objects;
+
+  std::vector<Handler<Group>> groups;
+
+  // std::vector<Handler<SurfaceObject<
   
 
   /// @brief clear scene with bg_color
@@ -79,6 +84,13 @@ public:
   /// @param ObjectData: the object to be added
   void add(Handler<ObjectData>);
 
+  /// @brief add group of objects to the scene
+  /// @param Group: the group of objects to be added
+  void add(Handler<Group>);
+
+  template<class G, class = std::enable_if_t<std::is_base_of_v<Group, G>>>
+  void add(const G& g) { add(Handler<G>{g}); }
+
   // void add(ObjectDataUpdater&);
   // template<class T, typename U = std::enable_if_t<std::is_base_of_v<ObjectDataUpdater, T>>>
   // void Scene::add(T&& o)  { 
@@ -93,9 +105,6 @@ public:
   /// @brief add object shader to the scene
   /// @param ObjectShader: the shader to be added
   void add(const ObjectShader&);
-
-  void add(const BezierSurfaceObject&);
-
 
   /// @brief add object to the scene
   /// @param Object: the object to be added

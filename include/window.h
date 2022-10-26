@@ -17,12 +17,20 @@ class Window {
 
   glm::vec<2,unsigned> cursor_pos;
 
+  unsigned cursor_mode = GLFW_CURSOR_DISABLED;
+  inline void __update__() const {
+    glfwSetInputMode(windowHandle, GLFW_CURSOR, cursor_mode);
+  }
+
 public:
+
+  SETTER_GETTER(cursor_mode, unsigned);
 
   const int width, height;
 
-  unsigned input_mode = GLFW_CURSOR_DISABLED;
-  // unsigned input_mode = GLFW_CURSOR_NORMAL;
+
+
+  // unsigned cursor_mode = GLFW_CURSOR_NORMAL;
   
   /**
    * @brief Construct a Window
