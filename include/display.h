@@ -12,6 +12,7 @@ class Display {
     enum Type {
       FOLLOW_CAMERA,
       LIGHT_TRACKING,
+      TEMP_FIXED,
       FIXED
     } mode = FOLLOW_CAMERA;
 

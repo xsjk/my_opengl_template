@@ -37,7 +37,7 @@ Vertex BsplineCurve::evaluate(const std::vector<vec3> &control_points, GLushort 
              &dc= BsplineCurve::coeffs(n, p, t, type, 1);
   const auto &pos= (weighted_sum(control_points, c)),
              &dir= (weighted_sum(control_points, dc));
-  return Vertex{pos, dir};
+  return Vertex{pos, dir, {t,0}};
 }
 
 
@@ -163,6 +163,9 @@ void BsplineCurve::update(ObjectData &data) const {
 BsplineSurface::BsplineSurface(glm::vec<2, GLushort> n, glm::vec<2, GLushort> p, glm::vec<2, Type> type)
   : BsplineSurface{std::vector<std::vector<vec3>>(n[0], std::vector<vec3>(n[1])), p, type} {}
 
+BsplineSurface::BsplineSurface(const BezierSurface& b) 
+  : BsplineSurface{b.control_points,{b.control_points.size()-1,b.control_points.front().size()-1}} { }
+
 
 BsplineSurface::BsplineSurface(
   const std::vector<std::vector<vec3>> &control_points,
@@ -196,13 +199,9 @@ Vertex BsplineSurface::evaluate(
              &dv  = weighted_sum(control_points, cu, dcv);
 
   auto norm = evalue(cross(du,dv));
-  if (norm==vec3(0)) {
-    norm = evaluate(control_points, t+(.5f-t)*.001f, p, type).normal;
-    std::cout << "Warning: normal is zero at " << t << '\t' << norm << std::endl;
-    norm = evalue(norm);
-  }
+  if (norm==vec3(0)) norm = evalue(evaluate(control_points, t+(.5f-t)*.001f, p, type).normal);
     
-  return {pos, norm};
+  return {pos, norm, t};
 }
 
 
@@ -213,6 +212,8 @@ Vertex BsplineSurface::evaluate(GLfloat u, GLfloat v) const {
 
 
 double BsplineSurface::cur_measure(double u, double v, double order) const {
+  if (.5-std::abs(u-.5)<.001 || .5-std::abs(v-.5)<.001)
+    return cur_measure(u+(.5-u)*.001,  v+(.5-v)*.001, order);
 
   glm::vec<2,GLuint> n {control_points.size(),control_points.front().size()};
 

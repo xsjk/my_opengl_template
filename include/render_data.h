@@ -5,6 +5,8 @@
 #include <utils.h>
 
 #include <buffer.hpp>
+#include <handler.hpp>
+
 
 struct VertexArrayObject {
   mutable GLuint ID = 0;
@@ -42,13 +44,13 @@ class RenderData {
 
   Handler<BufferData> data;
 
-  GLuint VAO = 0;
-  inline std::vector<Vertex> & vertices() const { return data->VBO->data; };
-  inline std::vector<GLuint> & indices() const { return data->EBO->data; };
-  
+  GLuint VAO = 0;  
   GLenum draw_mode = GL_TRIANGLES;
 
 public:
+
+  inline std::vector<Vertex> & vertices() const { return data->VBO->data; };
+  inline std::vector<GLuint> & indices() const { return data->EBO->data; };
   
   RenderData(GLenum draw_mode, bool enable_EBO);
   RenderData(const ObjectDataUpdater& );
@@ -74,11 +76,22 @@ public:
     GLfloat u_min=0, GLfloat u_max=1, GLfloat u_delta=0.05
   );
 
+  RenderData(
+    std::function<vec3(GLfloat,GLfloat)> f, 
+    std::vector<GLfloat> t_list,
+    std::vector<GLfloat> u_list
+  );
+
   /// @brief create curve from parameter function
   /// @param f: the function used to generate of the curve
   RenderData(
     std::function<vec3(GLfloat)> f, 
     GLfloat t_min=0, GLfloat t_max=1, GLfloat t_delta=0.05
+  );
+
+  RenderData(
+    std::function<vec3(GLfloat)> f, 
+    std::vector<GLfloat> t_list
   );
      
 
@@ -91,6 +104,8 @@ public:
     GLenum draw_mode=GL_TRIANGLES, 
     bool enable_EBO=true
   );
+
+  void save(const std::string &path) const;
 
   /// @brief copy
   RenderData deepcopy() const;

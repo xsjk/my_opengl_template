@@ -67,6 +67,8 @@ vec3 PickingTexture::read(unsigned int x, unsigned int y) {
   vec3 Pixel;
   glReadPixels(x, y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &Pixel);
 
+  // std::cout << "RAW: " << Pixel << std::endl;
+
   glReadBuffer(GL_NONE);
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -108,22 +110,60 @@ void Picking::update(const std::vector<Handler<Scene>>& scenes) {
   texture.deactivate();
 }
 
+#include <window.h>
+
 vec3 Picking::get_current(unsigned x, unsigned y) {
+  // update last
+  last_id = current_id;
+  last_obj = current_obj;
+  last_uv = current_uv;
+
+  // update current
   auto res = texture.read(x,y);
-  current = round(res.r);
-  pointID = round(res.g);
-  if(current > 0) {
+  current_id = round(res.r);
+  current_uv = vec2(res.g,res.b);
+  // std::cout << res << std::endl;
+  if(current_id > 0) {
     try {
-      current_obj = ObjectData::idToObjectData.at(current);
+      current_obj = ObjectData::idToObjectData.at(current_id);
+      // 
     } catch (std::out_of_range& e) {
       current_obj = nullptr;
     }
   } else {
     current_obj = nullptr;
   }
+
+  
+  
+
   return res;
 }
 
 vec3 Picking::get_current(glm::vec<2, unsigned> pos) {
   return get_current(pos.x, pos.y);
+}
+
+void Picking::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+  if(button == GLFW_MOUSE_BUTTON_LEFT)
+    switch (action) {
+      case GLFW_PRESS:
+        // std::cout << "GLFW_PRESS\n";
+        if(dragging_obj == nullptr) {
+          dragging_obj = current_obj;
+          dragging_uv = current_uv;
+          dragging_id = current_id;
+        } else {
+          if(dragging_obj != current_obj) {
+            std::cerr << "dragging_obj != current_obj\n";
+          }
+        }
+        break;
+      case GLFW_RELEASE:
+        // std::cout << "GLFW_RELEASE\n";
+        dragging_obj = nullptr;
+        dragging_uv = {-1,-1};
+        dragging_id = 0;
+        break;
+    }
 }

@@ -55,27 +55,57 @@ void ObjectData::update() {
 }
 
 void ObjectData::onclick(int button, int mode, int pointID) {
-  // std::cout << this << " is clicked\n" ;
+  std::cout << this << " is clicked\n" ;
+}
+
+void ObjectData::onclick(int button, int mode, vec2 uv) {
+  if(data.draw_mode == GL_POINTS)
+    onclick(button, mode, round(uv[0]));
 }
 
 void ObjectData::onrelease(int button, int mode, int pointID) {
-  // std::cout << this << " is released\n" ;
+  std::cout << this << " is released\n" ;
+}
+
+void ObjectData::onrelease(int button, int mode, vec2 uv) {
+  if(data.draw_mode == GL_POINTS)
+    onrelease(button, mode, round(uv[0]));
 }
 
 void ObjectData::ondrag(unsigned x, unsigned y, int pointID) {
+  std::cout << this << " is dragged\n" ;
+}
 
+void ObjectData::ondrag(unsigned x, unsigned y, vec2 uv) {
+  if(data.draw_mode == GL_POINTS)
+    ondrag(x, y, round(uv[0]));
 }
 
 void ObjectData::mouseover(int pointID) {
-  // std::cout << this << " mouse over\n";
+  std::cout << this << " mouse over\n";
+}
+
+void ObjectData::mouseover(vec2 uv) {
+  if(data.draw_mode == GL_POINTS)
+    mouseover(round(uv[0]));
 }
 
 void ObjectData::mouseout(int pointID) {
-  // std::cout << this << " mouse out\n";
+  std::cout << this << " mouse out\n";
+}
+
+void ObjectData::mouseout(vec2 uv) {
+  if(data.draw_mode == GL_POINTS)
+    mouseout(round(uv[0]));
 }
 
 void ObjectData::mousemove(unsigned x, unsigned y, int pointID) {
   // std::cout << this << " mouse move\n";
+}
+
+void ObjectData::mousemove(unsigned x, unsigned y, vec2 uv) {
+  if(data.draw_mode == GL_POINTS)
+    mousemove(x, y, round(uv[0]));
 }
 
 

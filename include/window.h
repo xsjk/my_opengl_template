@@ -8,8 +8,10 @@
 
 class RenderData;
 class BufferData;
-
+class Scene;
 class Window {
+  friend class Picking;
+  friend class Scene;
 
   void update_cursor();
 
@@ -27,9 +29,7 @@ public:
   SETTER_GETTER(cursor_mode, unsigned);
 
   const int width, height;
-
-
-
+  
   // unsigned cursor_mode = GLFW_CURSOR_NORMAL;
   
   /**
@@ -49,6 +49,7 @@ public:
    * @param scene 
    */
   void add(Handler<Scene> scene);
+  void add(Scene scene);
 
   /// @brief generate VAOs, VBOs and EBOs for all meshes in the window
   void setup();
@@ -78,6 +79,7 @@ public:
   /// @brief the PickingTexture for the window
   Picking picking;
   unsigned picking_object_ID = 0;
+  vec2 picking_object_uv = {0,0};
   Scene* focused_scene = nullptr;
   static Window* focused_window;
 

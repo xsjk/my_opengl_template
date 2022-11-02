@@ -32,20 +32,23 @@ class PickingShader : public Shader {
 
 
 #include <utils.h>
+#include <handler.hpp>
+
 
 class Scene;
 
 struct Picking {
   PickingTexture texture;
   PickingShader shader;
-  unsigned current = 0;
-  unsigned pointID = 0;
-  ObjectData* current_obj = nullptr;
+  unsigned current_id = 0, last_id = 0, dragging_id = 0;
+  inline bool dragging() const { return dragging_obj; }
+  vec2 current_uv = {-1,-1}, last_uv = {-1,-1}, dragging_uv = {-1,-1};
+  ObjectData* current_obj = nullptr, *last_obj = nullptr, *dragging_obj = nullptr;
   void init(unsigned width, unsigned height);
   void update(const std::vector<Handler<Scene>>& scenes);
   vec3 get_current(unsigned x, unsigned y);
   vec3 get_current(glm::vec<2,unsigned> pos);
-
+  void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 };
 
 

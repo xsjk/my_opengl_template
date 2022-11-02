@@ -10,6 +10,8 @@
 
 class Window;
 class Picking;
+class Group;
+class Scene;
 // low level object
 class ObjectDataUpdater;
 class ObjectDataUpdaterPlus;
@@ -17,13 +19,15 @@ class ObjectData : public ObjectParams, public Indexer {
 
   friend class Window;
   friend class Picking;
+  friend class Group;
+  friend class Scene;
 
-  // bool selected = false;
 
 protected:
   static std::map<unsigned, ObjectData*> idToObjectData;
   RenderData data;
   bool need_update = false; // use of dynamic draw
+
 
 private:
   friend class ObjectDataUpdater;
@@ -38,6 +42,10 @@ private:
   void __init__();
 
 public:
+  Group* parent = nullptr;
+  Scene* scene = nullptr;
+
+
   ObjectData(ObjectData&&);
   ObjectData(const ObjectData&);
 
@@ -69,12 +77,18 @@ public:
 
   inline unsigned get_ID() const { return ID; }
 
-  virtual void onclick(int button, int mods, int pointID=-1);
-  virtual void onrelease(int button, int mods, int pointID=-1);
-  virtual void ondrag(unsigned x, unsigned y, int pointID=-1);
-  virtual void mouseover(int pointID=-1);
-  virtual void mouseout(int pointID=-1);
-  virtual void mousemove(unsigned x, unsigned y, int pointID=-1);
+  virtual void onclick(int button, int mods, int pointID);
+  virtual void onclick(int button, int mods, vec2 uv);
+  virtual void onrelease(int button, int mods, int pointID);
+  virtual void onrelease(int button, int mods, vec2 uv);
+  virtual void ondrag(unsigned x, unsigned y, int pointID);
+  virtual void ondrag(unsigned x, unsigned y, vec2 uv);
+  virtual void mouseover(int pointID);
+  virtual void mouseover(vec2 uv);
+  virtual void mouseout(int pointID);
+  virtual void mouseout(vec2 uv);
+  virtual void mousemove(unsigned x, unsigned y, vec2 uv);
+  virtual void mousemove(unsigned x, unsigned y, int pointID);
 
   virtual void MouseCallback(int button, int action, int mods) {};
 
@@ -85,6 +99,7 @@ public:
   virtual void update();
 
   SETTER_GETTER(need_update, bool)
+  GETTER(data,RenderData)
 };
 
 

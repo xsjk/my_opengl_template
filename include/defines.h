@@ -67,29 +67,29 @@ const float PI = pi<float>();
     assert(false);                               \
   } while (0)
 
-#define SETTER(name, type)                  \
-  template<typename ...T>                   \
-  auto& set_##name(T&&... args){            \
-    name = type(std::forward<T>(args)...);  \
-    __update__();                           \
-    return *this;                           \
+#define SETTER(name, type)                          \
+  template<typename ...T>                           \
+  inline auto& set_##name(T&&... args){             \
+    name = type(std::forward<T>(args)...);          \
+    __update__();                                   \
+    return *this;                                   \
   }
 
 #define DERIVED_SETTER(name)                          \
   template<typename ...T>                             \
-  auto& set_##name(T&&... args){                      \
+  inline auto& set_##name(T&&... args){               \
     __base__::set_##name(std::forward<T>(args)...);   \
     __update__();                                     \
     return *this;                                     \
   }
 
 
-#define INCREASER(name)         \
-  template<typename T>          \
-  auto& increase_##name(T arg){ \
-    name += arg;                \
-    __update__();               \
-    return *this                \
+#define INCREASER(name)                 \
+  template<typename T>                  \
+  inline auto& increase_##name(T arg){  \
+    name += arg;                        \
+    __update__();                       \
+    return *this                        \
   }
 #define GETTER(name, type) \
   type get_##name() const { return name; }

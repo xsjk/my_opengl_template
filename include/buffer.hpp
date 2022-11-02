@@ -48,7 +48,7 @@ struct ElementBufferObject : BufferObject<GLuint> {
     data = indices;
   }
   void draw(GLenum draw_mode) const {
-    // set_data(GL_STREAM_DRAW);
+    set_data(GL_STREAM_DRAW);
     glDrawElements(draw_mode, data.size(), GL_UNSIGNED_INT, 0);
   }
 };

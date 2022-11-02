@@ -28,6 +28,11 @@ Window::Window(const int width, const int height, const std::string &title)
 
   
   picking.init(width, height);
+
+  focused_window = this;
+  focused = true;
+
+  update_cursor();
 }
 
 Window::~Window() {
@@ -106,6 +111,12 @@ void Window::add(Handler<Scene> scene) {
   scenes.emplace_back(scene);
 }
 
+void Window::add(Scene scene) {
+  /// @todo generate VAOs, VBOs and EBOs is necessary
+  scenes.emplace_back(std::move(scene));
+}
+
+
 void Window::makeCurrent() {
   glfwMakeContextCurrent(windowHandle);
 }
@@ -167,47 +178,27 @@ void Window::update_cursor() {
       y = height - y;
       break;
   }
-  cursor_pos = {unsigned(x), unsigned(y)};
+  cursor_pos = {round(x), round(y)};
 }
 
 void Window::updateObjectID() {
-  
-  unsigned &old_ID = picking_object_ID;
   picking.get_current(cursor_pos);
-  unsigned new_ID = picking.current;
-  if(old_ID != new_ID){
+  
+  if(picking.last_id != picking.current_id){
     try { 
-      ObjectData* new_obj = ObjectData::idToObjectData.at(new_ID);
-      if (new_obj->data.draw_mode==GL_POINTS) {
-        new_obj->mouseover(picking.pointID); 
-      } else {
-        new_obj->mouseover();
-      }
-    } catch(std::out_of_range& e) { 
-      // std::cerr << "mouseover " << new_ID << ' ' << e.what() << std::endl; 
-    }
-    try { ObjectData::idToObjectData.at(old_ID)->mouseout(); } catch(std::out_of_range& e) { 
-      // std::cerr << "mouseout " << old_ID << ' ' << e.what() << std::endl; 
-    }
-    old_ID = new_ID;
+      if(picking.current_obj)
+          picking.current_obj->mouseover(picking.current_uv);
+    } catch(std::out_of_range& e) { }
+    try { 
+      if(picking.last_obj)
+        picking.last_obj->mouseout(picking_object_uv); 
+    } catch(std::out_of_range& e) { }
   } 
 
-
   // ondrag
-  static ObjectData* dragged_obj = nullptr;
-  static unsigned dragging_point_ID = 0;
-  switch (glfwGetMouseButton(windowHandle, GLFW_MOUSE_BUTTON_LEFT)) {
-    case GLFW_PRESS:
-      if(dragged_obj){
-        dragged_obj->ondrag(cursor_pos.x,cursor_pos.y,dragging_point_ID);
-      } else {
-        dragged_obj = picking.current_obj;
-        dragging_point_ID = picking.pointID;
-      }
-      break;
-    case GLFW_RELEASE:
-      dragged_obj = nullptr;
-      break;
+  if(picking.dragging_obj){
+    picking.dragging_obj->ondrag(cursor_pos[0], cursor_pos[1], picking.dragging_uv );
+
   }
 }
 
@@ -218,7 +209,7 @@ void Window::bindCallbacks(GLFWwindow* window) {
       case GLFW_PRESS:
         switch (k) {
           case GLFW_KEY_ESCAPE:
-            // glfwSetWindowShouldClose(w, true);
+            glfwSetWindowShouldClose(w, true);
             break;
           case GLFW_KEY_LEFT_SHIFT:
           case GLFW_KEY_RIGHT_SHIFT:
@@ -289,41 +280,44 @@ void Window::bindCallbacks(GLFWwindow* window) {
     }
     x_ = x; y_ = y;
 
-    // ondrag
     auto& pos = window.cursor_pos;
 
     // mouse move
     if (window.picking.current_obj) {
-      window.picking.current_obj->mousemove(pos.x,pos.y,window.picking.pointID);
+      /// @todo remake
+
+      window.picking.current_obj->mousemove(
+        window.cursor_pos[0], 
+        window.cursor_pos[1],
+        window.picking.current_uv
+      );
     }
+
+    pos = {unsigned(x), unsigned(window.height - y)};
+    // pos = {round(x), round(y)};
 
   });
   glfwSetMouseButtonCallback(window,[](GLFWwindow* w, int b, int a, int m) {
     Window& window = *Window::windows.at(w);
-    window.updateObjectID();
-    try {
-      ObjectData& o = *ObjectData::idToObjectData.at(window.picking_object_ID);
-      switch(a) {
-        case GLFW_PRESS:
-          if (o.data.draw_mode==GL_POINTS) {
-            o.onclick(b,m,window.picking.pointID);
-          } else {
-            o.onclick(b,m);
-          }
-          break;
-        case GLFW_RELEASE:
-          if (o.data.draw_mode==GL_POINTS) {
-            o.onrelease(b,m,window.picking.pointID);
-          } else {
-            o.onrelease(b,m);
-          }
-          break;
-      }
-    } catch(std::out_of_range& e) {
-      // std::cerr << "mouse button at " << window.current_object_ID << ' ' <<e.what() << std::endl;
+    window.picking.get_current(window.cursor_pos);
+    switch(b) {
+      case GLFW_MOUSE_BUTTON_LEFT:
+        switch (a) {
+          case GLFW_PRESS:
+            window.picking.MouseButtonCallback(w,b,a,m);
+            if (window.picking.current_obj)
+              window.picking.current_obj->onclick(b,m,window.picking.current_uv);
+            break;
+          case GLFW_RELEASE:
+            if (window.picking.current_obj)
+              window.picking.current_obj->onrelease(b,m,window.picking.current_uv);
+            window.picking.MouseButtonCallback(w,b,a,m);
+            break;
+        }
+        break;
     }
+    
   });
-
   glfwSetScrollCallback(window,[](GLFWwindow* w, double x, double y) {
     for(auto& scene:Window::windows.at(w)->scenes) 
       scene->ScrollCallback(w,x,y);
@@ -331,7 +325,6 @@ void Window::bindCallbacks(GLFWwindow* window) {
   glfwSetWindowFocusCallback(window,[](GLFWwindow* w, int f) {
     Window::focused_window = Window::windows.at(w);
     Window::focused_window->focused = f;
-    std::cout << "foucus on " << Window::focused_window << std::endl;
   });
   // glfwSetFramebufferSizeCallback(window,[](GLFWwindow* w, int x, int y) {
   // });

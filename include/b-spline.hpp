@@ -324,7 +324,7 @@ Vertex BsplineSurface<V>::evaluate(
     norm = evalue(norm);
   }
     
-  return {pos, norm};
+  return {pos, norm, t};
 }
 
 

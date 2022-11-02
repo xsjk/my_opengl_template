@@ -78,9 +78,8 @@ class BsplineCurve: public ObjectDataUpdaterPlus {
 
 class BsplineSurface : public ObjectDataUpdaterPlus {
   
-  using Type = typename BsplineCurve::Type;
-
 public:
+  using Type = typename BsplineCurve::Type;
   
   glm::vec<2, Type> type = {Type::clamped, Type::open};
   glm::vec<2, GLushort> p = {2, 2};
@@ -91,11 +90,13 @@ public:
   glm::vec<2, GLuint> resolution = {20,20}; 
 
 
-  Triangulation mode = Triangulation::adaptive;
+  Triangulation mode = Triangulation::uniform;
 
   std::vector<std::vector<vec3>> control_points;
 
   BsplineSurface(glm::vec<2, GLushort> n, glm::vec<2, GLushort> p, glm::vec<2, Type> type);
+
+  BsplineSurface(const BezierSurface&);
 
   BsplineSurface(const std::vector<std::vector<vec3>>& control_points, glm::vec<2, GLushort> p, glm::vec<2, Type> type={Type::clamped, Type::clamped});
 

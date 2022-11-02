@@ -5,7 +5,6 @@
 
 class ObjectData;
 class Camera;
-class Light;
 
 class Shader {
   public:
@@ -51,7 +50,7 @@ class Shader {
 };
 
 
-
+class Light;
 
 class ObjectShader : public Shader {
   public:

@@ -11,16 +11,21 @@
 
 template<class S>
 class SurfaceObject : public Group {
-
   
-  struct ObjectHighlighted : public ObjectData {
-    ObjectHighlighted(ObjectData o) : ObjectData(o) {}
-    virtual void mouseover(int pointID) override {
-      set_color(0,1,0);
-    }
-    virtual void mouseout(int pointID) override {
-      set_color(0.8);
-    }
+  struct HighLightedObj : public ObjectData {
+    SurfaceObject<S>& parent;
+    HighLightedObj(SurfaceObject<S>& s);
+    virtual void mouseover(vec2 uv) override;
+    virtual void mouseout(vec2 uv) override;
+  };
+
+  struct ControlPointsObj : public ObjectData {
+    SurfaceObject<S>& parent;
+    ControlPointsObj(SurfaceObject<S>& s);
+    virtual void ondrag(unsigned x, unsigned y, int) override;
+    virtual void mouseover(int) override;
+    virtual void mouseout(int) override;
+    virtual void onclick(int,int,int) override;
   };
 
   Triangulation triangulation_mode = Triangulation::adaptive;
@@ -33,6 +38,10 @@ class SurfaceObject : public Group {
 
   const S origin;
 
+  bool selected;
+
+  bool changed = false;
+
 public:
 
   SETTER_GETTER(triangulation_mode, Triangulation)
@@ -44,18 +53,7 @@ public:
   Handler<ElementBufferObject> control_points_edge_EBO, control_points_face_EBO, surface_edge_EBO, surface_face_EBO;
 
 
-  /// derive from ObjectData to rewrite mouse callback
-  class ControlPointsObj : public ObjectData {
-    SurfaceObject<S>& parent;
-  public:
-    ControlPointsObj(SurfaceObject<S>& s);
-    // virtual void onclick(int button, int mod, int pointID) override;
-    // virtual void onrelease(int button, int mod, int pointID) override;
-    virtual void ondrag(unsigned x, unsigned y, int pointID) override;
-    virtual void mouseover(int) override;
-    virtual void mouseout(int) override;
-    virtual void onclick(int,int,int) override;
-  };
+  
 
 
 
@@ -80,11 +78,7 @@ public:
   Handler<ObjectData> surface_edge{
     RenderData{surface_VBO, surface_edge_EBO, GL_LINES}
   };
-  Handler<ObjectHighlighted> surface_face{
-    RenderData{surface_VBO, surface_face_EBO, GL_TRIANGLES}
-  };
-
-
+  Handler<HighLightedObj> surface_face{*this};
 
   /// @brief display mode
   /// @details 
@@ -94,8 +88,6 @@ public:
   ///   - 8: show control points
   ///   - 16: show control grid,
   ///   - 32: show control faces
-
-
 
   enum {
     SURFACE_POINTS = 1,
@@ -132,7 +124,23 @@ public:
 
 };
 
+template<class S>
+SurfaceObject<S>::HighLightedObj::HighLightedObj(SurfaceObject<S>& s) : 
+  ObjectData(RenderData{s.surface_VBO, s.surface_face_EBO, GL_TRIANGLES}), parent{s} {}
 
+template<class S>
+void SurfaceObject<S>::HighLightedObj::mouseover(vec2 uv) {
+  parent.selected = true;
+  if (parent.parent)
+    set_color(0,1,0);
+}
+
+template<class S>
+void SurfaceObject<S>::HighLightedObj::mouseout(vec2 uv) {
+  parent.selected = false;
+  if (parent.parent)
+    set_color(0.8);
+}
 
 
 template<class S>
@@ -142,10 +150,11 @@ SurfaceObject<S>::ControlPointsObj::ControlPointsObj(SurfaceObject<S>& s)
 
 template<class S>
 void SurfaceObject<S>::ControlPointsObj::ondrag(unsigned x, unsigned y, int pointID) {
-  auto scene = Window::focused_window->focused_scene;
+  auto scene = this->scene;
   if (scene) {
     auto& display = scene->display;
     auto old_world_coordinate = parent.control_points_VBO->data[pointID].position;
+    // auto old_world_coordinate = parent.surface->evaluate(uv[0], uv[1]).position;
     auto old_camera_coordinate = display.camera.world_to_camera(old_world_coordinate);
     auto new_screen_coordinate = vec3(x, y, old_camera_coordinate.z);
     auto new_camera_coordinate = display.screen_to_camera(new_screen_coordinate);
@@ -182,6 +191,7 @@ SurfaceObject<S>::SurfaceObject(
 
 template<class S>
 void SurfaceObject<S>::KeyboardCallback(int key, int scancode, int action, int mods) {
+  // if(selected)
   if (action == GLFW_PRESS) {
     switch (key) {
       case GLFW_KEY_1:
@@ -249,18 +259,23 @@ void SurfaceObject<S>::KeyboardCallback(int key, int scancode, int action, int m
         break;
 
       case GLFW_KEY_R:
-        std::copy(origin.control_points.begin(),origin.control_points.end(),surface->control_points.begin());
-        control_points_VBO->data.clear();
-        init(true);
+        if(changed) {
+          std::copy(origin.control_points.begin(),origin.control_points.end(),surface->control_points.begin());
+          control_points_VBO->data.clear();
+          init(true);
+        }
         break;
       default:
         break;
     }
   }
+
 }
 
 template<class S>
 void SurfaceObject<S>::init(bool VBOonly) {
+  changed = false;
+
   unsigned m=surface->control_points.size(), n=surface->control_points.front().size();
 
   // create vertex list of control points
@@ -334,6 +349,7 @@ void SurfaceObject<S>::all_need_update() {
 
 template<class S>
 void SurfaceObject<S>::set_control_point(unsigned i, unsigned j, vec3 point) {
+  changed = true;
   all_need_update();
 
   unsigned n = surface->control_points.front().size();

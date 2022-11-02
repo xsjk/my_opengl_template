@@ -83,22 +83,27 @@ void Scene::update() {
 }
 
 
-void Scene::add(Handler<Light> light) {
-  lights.emplace_back(std::move(light));
-}
 
 void Scene::add(Handler<ObjectData> object) {
   add(std::move(object),defaultShader);
 }
 
+void Scene::add(ObjectData object) {
+  add(std::move(object),defaultShader);
+}
+
 void Scene::add(Handler<ObjectData> object, const ObjectShader& shader) {
+  object->scene = this;
   renderData[shader].emplace_back(std::move(object));
 }
 
 
+void Scene::add(Light light) {
+  lights.emplace_back(std::move(light));
+}
 
 void Scene::add(Handler<Group> obj) {
-  obj->parent = this;
+  obj->scene = this;
   obj->init(*this);
   groups.emplace_back(std::move(obj));
 }
@@ -177,12 +182,9 @@ void Scene::KeyboardCallback(GLFWwindow* window, int key, int scancode, int acti
             case GLFW_KEY_F3: // print current camera pos
               std::cout << display.camera.get_eye() << std::endl;
               break;
-            case GLFW_KEY_ESCAPE:
-              std::cout << "ESC" << std::endl;
-              break;
-
             case GLFW_KEY_ENTER:
-              std::cout << "ENTER" << std::endl;
+              display.mode = Display::TEMP_FIXED;
+              Window::windows.at(window)->set_cursor_mode(GLFW_CURSOR_NORMAL);
               break;
 
           }
@@ -206,7 +208,17 @@ void Scene::KeyboardCallback(GLFWwindow* window, int key, int scancode, int acti
           break;
       }
     break;
-    case Display::FIXED:
+    case Display::TEMP_FIXED:
+      switch (action) {
+        case GLFW_PRESS:
+          switch (key) {
+            case GLFW_KEY_ENTER:
+              display.mode = Display::FOLLOW_CAMERA;
+              Window::windows.at(window)->set_cursor_mode(GLFW_CURSOR_DISABLED);
+              break;
+          }
+          break;
+      }
       break;
 
   }

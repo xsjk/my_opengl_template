@@ -4,14 +4,12 @@
 
 class Scene;
 
-class Group {
+struct Group {
 
-protected:
+  Scene* scene = nullptr;
 
-  friend class Scene;
-  Scene* parent = nullptr;
+  Group* parent = nullptr;
 
-public:
 
   virtual void init(Scene &scene) = 0;
 

@@ -16,6 +16,7 @@ class SurfaceObject;
 
 #include <shader.h>
 #include <display.h>
+#include <handler.hpp>
 
 
 struct SceneData {
@@ -76,17 +77,20 @@ public:
   /// @brief update the scene
   void update();
 
-  /// @brief add light to the scene
-  /// @param Light: the light to be added
-  void add(Handler<Light>);
+
 
   /// @brief add object to the scene
   /// @param ObjectData: the object to be added
   void add(Handler<ObjectData>);
+  void add(ObjectData);
 
   /// @brief add group of objects to the scene
   /// @param Group: the group of objects to be added
   void add(Handler<Group>);
+
+  /// @brief add light to the scene
+  /// @param Light: the light to be added
+  void add(Light);
 
   template<class G, class = std::enable_if_t<std::is_base_of_v<Group, G>>>
   void add(const G& g) { add(Handler<G>{g}); }
