@@ -59,6 +59,7 @@ void ObjectData::onclick(int button, int mode, int pointID) {
 }
 
 void ObjectData::onclick(int button, int mode, vec2 uv) {
+  std::cout << "click" << uv << std::endl;
   if(data.draw_mode == GL_POINTS)
     onclick(button, mode, round(uv[0]));
 }

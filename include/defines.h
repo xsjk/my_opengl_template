@@ -77,7 +77,7 @@ const float PI = pi<float>();
 
 #define DERIVED_SETTER(name)                          \
   template<typename ...T>                             \
-  [[nodiscard]] inline auto& set_##name(T&&... args){ \
+  inline auto& set_##name(T&&... args){               \
     __base__::set_##name(std::forward<T>(args)...);   \
     __update__();                                     \
     return *this;                                     \
@@ -92,7 +92,7 @@ const float PI = pi<float>();
     return *this                        \
   }
 #define GETTER(name, type) \
-  [[nodiscard]] type get_##name() const { return name; }
+  [[nodiscard]] inline type get_##name() const { return name; }
 
 #define SETTER_GETTER(name, type) \
   SETTER(name, type)              \

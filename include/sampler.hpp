@@ -25,7 +25,7 @@ public:
 
   std::vector<GLuint> line_indices;
 
-  Sampler(const S& surface, glm::vec<2,GLuint> reslution={20,20});
+  Sampler(const S& surface, glm::vec<2,GLuint> reslution={15,15});
 
 };
 
