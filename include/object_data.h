@@ -98,8 +98,8 @@ public:
   void draw() const;
   virtual void update();
 
-  SETTER_GETTER(need_update, bool)
-  GETTER(data,RenderData)
+  SETTER_GETTER(need_update)
+  GETTER(data)
 };
 
 

@@ -16,8 +16,8 @@ public:
   void move(GLfloat x, GLfloat y, GLfloat z);
   void zoom(GLfloat offset);
   mat4 matrix() const;
-  SETTER_GETTER(movementSpeed, GLfloat)
-  SETTER_GETTER(rotationSpeed, GLfloat)
+  SETTER_GETTER(movementSpeed)
+  SETTER_GETTER(rotationSpeed)
   void KeyboardPressingCallback(int key, int mod);
   void CursorMoveCallback(GLfloat xoffset, GLfloat yoffset);
   void ScrollCallback(GLfloat yoffset);

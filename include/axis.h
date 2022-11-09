@@ -49,10 +49,10 @@ class Arrow : public Group {
 
     Handler<ArrowData> mesh_object{*this};
 
-    SETTER_GETTER(start, vec3);
-    SETTER_GETTER(end, vec3);
-    SETTER_GETTER(color, vec3);
-    SETTER_GETTER(visibility, bool);
+    SETTER_GETTER(start);
+    SETTER_GETTER(end);
+    SETTER_GETTER(color);
+    SETTER_GETTER(visibility);
 
     
 

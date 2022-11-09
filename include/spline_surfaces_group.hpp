@@ -21,7 +21,7 @@ public:
 
   SurfaceGroup(const std::vector<S>& surfaces_data);
 
-  SETTER_GETTER(display_mode, int);
+  SETTER_GETTER(display_mode);
 
 
 };

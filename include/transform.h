@@ -20,9 +20,9 @@ public:
    */
   Affine(vec3 displacement=vec3(0), vec3 rotation=vec3(0), vec3 scale=vec3(1));
   MAT_GETTER
-  SETTER_GETTER(displacement, vec3)
-  SETTER_GETTER(rotation, vec3)
-  SETTER_GETTER(scale, vec3)
+  SETTER_GETTER(displacement)
+  SETTER_GETTER(rotation)
+  SETTER_GETTER(scale)
 };
 
 
@@ -42,11 +42,11 @@ public:
   void displace(vec3 v);
   void rotate(GLfloat yaw_offset, GLfloat pitch_offset);
   MAT_GETTER
-  SETTER_GETTER(yaw, GLfloat)
-  SETTER_GETTER(pitch, GLfloat)
-  SETTER_GETTER(eye, vec3)
-  SETTER_GETTER(front, vec3)
-  SETTER_GETTER(up, vec3)
+  SETTER_GETTER(yaw)
+  SETTER_GETTER(pitch)
+  SETTER_GETTER(eye)
+  SETTER_GETTER(front)
+  SETTER_GETTER(up)
 };
 
 
@@ -65,10 +65,10 @@ public:
    */
   Perspective(GLfloat fov, GLfloat aspect, GLfloat near=0.1, GLfloat far=100);
   MAT_GETTER
-  SETTER_GETTER(fov, GLfloat)
-  SETTER_GETTER(aspect, GLfloat)
-  SETTER_GETTER(near, GLfloat)
-  SETTER_GETTER(far, GLfloat)
+  SETTER_GETTER(fov)
+  SETTER_GETTER(aspect)
+  SETTER_GETTER(near)
+  SETTER_GETTER(far)
 };
 
 

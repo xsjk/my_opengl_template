@@ -15,11 +15,11 @@ class ObjectParams : public Affine {
     ObjectParams(vec3 color=vec3{.8}, Affine affine={})
      : Affine(affine), color(color) {}
 
-    SETTER_GETTER(color, vec3)
-    SETTER_GETTER(visibility, bool)
-    SETTER_GETTER(buffer_mode,GLenum) 
-    SETTER_GETTER(opacity,float)
-    SETTER_GETTER(point_size,float)
+    SETTER_GETTER(color)
+    SETTER_GETTER(visibility)
+    SETTER_GETTER(buffer_mode) 
+    SETTER_GETTER(opacity)
+    SETTER_GETTER(point_size)
 };
 
 #endif

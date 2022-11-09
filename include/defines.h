@@ -67,10 +67,10 @@ const float PI = pi<float>();
     assert(false);                               \
   } while (0)
 
-#define SETTER(name, type)                          \
+#define SETTER(name)                                \
   template<typename ...T>                           \
   inline auto& set_##name(T&&... args){             \
-    name = type(std::forward<T>(args)...);          \
+    name = decltype(name)(std::forward<T>(args)...);\
     __update__();                                   \
     return *this;                                   \
   }
@@ -91,12 +91,12 @@ const float PI = pi<float>();
     __update__();                       \
     return *this                        \
   }
-#define GETTER(name, type) \
-  [[nodiscard]] inline type get_##name() const { return name; }
+#define GETTER(name) \
+  [[nodiscard]] inline decltype(name) get_##name() const { return name; }
 
-#define SETTER_GETTER(name, type) \
-  SETTER(name, type)              \
-  GETTER(name, type)
+#define SETTER_GETTER(name) \
+  SETTER(name)              \
+  GETTER(name)
 
 #define MAT_GETTER                    \
   mat4 matrix() const { return mat; } \

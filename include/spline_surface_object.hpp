@@ -44,7 +44,7 @@ class SurfaceObject : public Group {
 
 public:
 
-  SETTER_GETTER(triangulation_mode, Triangulation)
+  SETTER_GETTER(triangulation_mode)
 
 
 

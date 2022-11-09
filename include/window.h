@@ -26,7 +26,7 @@ class Window {
 
 public:
 
-  SETTER_GETTER(cursor_mode, unsigned);
+  SETTER_GETTER(cursor_mode);
 
   const int width, height;
   

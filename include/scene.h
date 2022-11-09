@@ -138,7 +138,7 @@ public:
 
   bool operator==(const Scene &other) const;
 
-  SETTER_GETTER(bg_color, vec3)
+  SETTER_GETTER(bg_color)
 
   
 

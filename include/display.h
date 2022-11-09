@@ -16,10 +16,10 @@ class Display {
       FIXED
     } mode = FOLLOW_CAMERA;
 
-    SETTER_GETTER(x, GLint);
-    SETTER_GETTER(y, GLint);
-    SETTER_GETTER(width, GLsizei);
-    SETTER_GETTER(height, GLsizei);
+    SETTER_GETTER(x);
+    SETTER_GETTER(y);
+    SETTER_GETTER(width);
+    SETTER_GETTER(height);
 
     Camera camera;
     void activate();
