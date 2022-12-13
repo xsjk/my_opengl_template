@@ -50,7 +50,7 @@ class Shader {
 };
 
 
-class Light;
+struct Light;
 
 class ObjectShader : public Shader {
   public:

@@ -1,5 +1,6 @@
 #include <cloth.h>
 #include <time_system.h>
+#include <light.h>
 
 // RectCloth::RectCloth() 
 
@@ -80,12 +81,13 @@ void RectCloth::update_pos() {
         auto norm = get_normal(i);
         if (is_fixed_masses[i] || i==mousehold) continue;
         constexpr auto gaussian = [](float x, float y) { return exp2f(-x*x-y*y); };
-        const vec3 wind = gaussian(pos.x, pos.y) * vec3{0,0,5};
+        // const vec3 wind = gaussian(pos.x, pos.y) * vec3{0,0,5};
+        const vec3 wind = get_wind(pos);
         const vec3 air_resistance = wind -  world_velocities[i];
         world_accelerations[i] = 
             vec3{0,-9.8,0}  // gravity
           + get_force(ivec2(iw, ih)) / dm * damping_ratio // elastic force
-          + 2e-3f * glm::dot(air_resistance, norm) * norm * get_dS(iw, ih) / dm; // air
+          + 1e-3f * glm::dot(air_resistance, norm) * norm * get_dS(iw, ih) / dm; // air
           ;
       }
 
@@ -217,11 +219,39 @@ void RectCloth::KeyboardCallback(int key, int scancode, int action, int mods) {
           display_mode |= FACES;
         }
         break;
+      
+      case GLFW_KEY_R:
+        reset();
+        break;
+
+      case GLFW_KEY_T:
+        std::cout << "test: " << get_wind(vec3(0)) << std::endl;
+        break;
     }
     
   }
 }
 
+
+vec3 RectCloth::get_wind(const vec3& pos)  {
+  const Light& wind = *scene->getData().lights[0];
+  
+  float cutOff = glm::cos(glm::radians(wind.cutOff));
+  float outerCutOff = glm::cos(glm::radians(wind.outerCutOff));
+
+  auto wind_to_pos = pos - vec3(wind.position);
+  auto distance = glm::length(wind_to_pos); 
+  auto direction = glm::normalize(wind_to_pos);
+
+  auto theta = glm::dot(direction, wind.direction);
+  float epsilon = outerCutOff - cutOff;
+  // if (theta < ep)
+  float intensity = glm::clamp((outerCutOff - theta) / epsilon, 0.0f, 1.0f);
+  // float intensity = glm::exp(-theta) * glm::clamp((outerCutOff - theta) / epsilon, 0.0f, 1.0f);
+  float attenuation = wind.attenuation(distance);  
+
+  return intensity * attenuation * direction;
+}
 
 
 void RectCloth::hide(Handler<ObjectData> obj) {

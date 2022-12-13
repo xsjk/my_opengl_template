@@ -5,7 +5,7 @@
 
 #include <utils.h>  // WindowGuard
 
-class Light;
+struct Light;
 class Group;
 class ObjectData;
 class ObjectBase;

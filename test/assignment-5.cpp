@@ -142,8 +142,9 @@ int main() {
   {// spot light 1
     Light l {
       .position = {-3, 0.2, -2, 1},
-      .linear = 0.0,
-      .quadratic = 0.0,
+      .constant = 0,
+      .linear = 0.01,
+      .quadratic = 0.05,
       .direction = {0, -1, 5},
       .color = {1, .5, 0},
       .diffuse = vec3{.9},

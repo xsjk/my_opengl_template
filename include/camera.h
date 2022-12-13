@@ -4,7 +4,7 @@
 #include <defines.h>
 
 class Shader;
-class Light;
+struct Light;
 
 #include <transform.h>
 

@@ -10,7 +10,6 @@
 #include <group.h>
 #include <time_system.h>
 
-
 class RectCloth : public Group {
 
 
@@ -63,6 +62,7 @@ class RectCloth : public Group {
   float damping_ratio;
 
 
+  vec3 get_wind(const vec3& pos);
 
   Handler<VertexBufferObject> grid_VBO;
   Handler<ElementBufferObject> fixed_points_EBO;
@@ -111,6 +111,10 @@ class RectCloth : public Group {
      = vec3(0);
     }
 
+    inline void reset() {
+      for (unsigned i = 0; i < n_mass; ++i) reset(i);
+    }
+
     
     inline auto get_index(unsigned iw, unsigned ih) const { return ih * mass_dim.x + iw; }
     inline auto get_index(int iw, int ih) const { return get_index(unsigned(iw < 0 ? mass_dim.x + iw : iw), unsigned(ih < 0 ? mass_dim.y + ih : ih)); }
@@ -127,18 +131,12 @@ class RectCloth : public Group {
 
 
     inline float get_dS(int iw, int ih) const {
-      // compute dS: the area of the triangle formed by the point and its two neighbors
-      // dS = 0.5 * |(p1 - p0) x (p2 - p0)|
-      // where p0 is the point, p1 is the point to the right, p2 is the point below
-      // if the point is on the right edge, p1 is the point to the left
-      // if the point is on the bottom edge, p2 is the point above
       vec3 p0 = get_pos(get_index(iw, ih)), p1, p2;
       if (iw == mass_dim.x - 1) p1 = get_pos(get_index(iw - 1, ih));
       else p1 = get_pos(get_index(iw + 1, ih));
       if (ih == mass_dim.y - 1) p2 = get_pos(get_index(iw, ih - 1));
       else p2 = get_pos(get_index(iw, ih + 1));
-      return 0.5f * glm::length(glm::cross(p1 - p0, p2 - p0));
-
+      return glm::length(glm::cross(p1 - p0, p2 - p0));
     }
 
     inline void init(Scene& s) override {

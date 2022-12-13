@@ -39,6 +39,10 @@ struct Light {
   };
 
   Type getType() const;
+
+  inline float attenuation(float distance) const {
+    return 1.0 / (constant + (linear + quadratic * distance) * distance);
+  }
 };
 
 
