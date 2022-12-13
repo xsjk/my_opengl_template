@@ -301,19 +301,32 @@ void Window::bindCallbacks(GLFWwindow* window) {
 
   });
   glfwSetMouseButtonCallback(window,[](GLFWwindow* w, int b, int a, int m) {
-    Window& window = *Window::windows.at(w);
+    auto& window = *Window::windows.at(w);
     window.picking.get_current(window.cursor_pos);
+    static ObjectData* last_mouse_pressed = nullptr;
     switch(b) {
       case GLFW_MOUSE_BUTTON_LEFT:
         switch (a) {
           case GLFW_PRESS:
             window.picking.MouseButtonCallback(w,b,a,m);
-            if (window.picking.current_obj)
+            if (last_mouse_pressed = window.picking.current_obj)
               window.picking.current_obj->mousedown(b,m,window.picking.current_uv);
             break;
           case GLFW_RELEASE:
-            if (window.picking.current_obj)
+            if (window.picking.current_obj) {
               window.picking.current_obj->mouseup(b,m,window.picking.current_uv);
+              if (last_mouse_pressed == window.picking.current_obj)
+                
+                if ( glfwGetTime() - Time::last_debounced_time > 0.5 ) {
+                  // single click
+                  window.picking.current_obj->onclick(b,m,window.picking.current_uv);
+                  Time::last_debounced_time = glfwGetTime();
+                } else {
+                  // double click
+                  window.picking.current_obj->ondblclick(b,m,window.picking.current_uv);
+                }
+                
+            }
             window.picking.MouseButtonCallback(w,b,a,m);
             break;
         }

@@ -117,7 +117,7 @@ protected:
   static std::map<unsigned, ObjectData*> idToObjectData;
   RenderData data;
   bool need_update = false; // use of dynamic draw
-
+  bool listen_mouse = true;
 
 private:
   friend class ObjectDataUpdater;
@@ -179,6 +179,9 @@ public:
   virtual void mouseout(vec2 uv);
   virtual void mousemove(unsigned x, unsigned y, vec2 uv);
   virtual void mousemove(unsigned x, unsigned y, int pointID);
+  virtual void onclick(unsigned x, unsigned y, vec2 uv);
+  virtual void ondblclick(unsigned x, unsigned y, vec2 uv);
+  virtual int uv2pointID(vec2 uv);
 
   virtual void MouseCallback(int button, int action, int mods) {};
 
@@ -189,6 +192,7 @@ public:
   virtual void update();
 
   SETTER_GETTER(need_update)
+  SETTER_GETTER(listen_mouse)
   GETTER(data)
 };
 

@@ -430,5 +430,6 @@ bool RenderData::contains(const vec3& pos) const {
     case MeshPrimitiveType::Other:
       throw std::runtime_error("RenderData::contains() not implemented for MeshPrimitiveType::Other");
   }
+  return false;
 }
   

@@ -64,7 +64,7 @@ void ObjectData::mousedown(int button, int mode, int pointID) {
 void ObjectData::mousedown(int button, int mode, vec2 uv) {
   std::cout << "click" << uv << std::endl;
   if(data.draw_mode == GL_POINTS)
-    mousedown(button, mode, round(uv[0]));
+    mousedown(button, mode, uv2pointID(uv));
 }
 
 void ObjectData::mouseup(int button, int mode, int pointID) {
@@ -73,7 +73,7 @@ void ObjectData::mouseup(int button, int mode, int pointID) {
 
 void ObjectData::mouseup(int button, int mode, vec2 uv) {
   if(data.draw_mode == GL_POINTS)
-    mouseup(button, mode, round(uv[0]));
+    mouseup(button, mode, uv2pointID(uv));
 }
 
 void ObjectData::ondrag(unsigned x, unsigned y, int pointID) {
@@ -82,7 +82,7 @@ void ObjectData::ondrag(unsigned x, unsigned y, int pointID) {
 
 void ObjectData::ondrag(unsigned x, unsigned y, vec2 uv) {
   if(data.draw_mode == GL_POINTS)
-    ondrag(x, y, round(uv[0]));
+    ondrag(x, y, uv2pointID(uv));
 }
 
 void ObjectData::mouseover(int pointID) {
@@ -91,7 +91,7 @@ void ObjectData::mouseover(int pointID) {
 
 void ObjectData::mouseover(vec2 uv) {
   if(data.draw_mode == GL_POINTS)
-    mouseover(round(uv[0]));
+    mouseover(uv2pointID(uv));
 }
 
 void ObjectData::mouseout(int pointID) {
@@ -100,7 +100,7 @@ void ObjectData::mouseout(int pointID) {
 
 void ObjectData::mouseout(vec2 uv) {
   if(data.draw_mode == GL_POINTS)
-    mouseout(round(uv[0]));
+    mouseout(uv2pointID(uv));
 }
 
 void ObjectData::mousemove(unsigned x, unsigned y, int pointID) {
@@ -109,9 +109,20 @@ void ObjectData::mousemove(unsigned x, unsigned y, int pointID) {
 
 void ObjectData::mousemove(unsigned x, unsigned y, vec2 uv) {
   if(data.draw_mode == GL_POINTS)
-    mousemove(x, y, round(uv[0]));
+    mousemove(x, y, uv2pointID(uv));
 }
 
+void ObjectData::onclick(unsigned x, unsigned y, vec2 uv) {
+
+}
+
+void ObjectData::ondblclick(unsigned x, unsigned y, vec2 uv) {
+
+}
+
+int ObjectData::uv2pointID(vec2 uv) {
+  return round(uv[0]);
+}
 
 ObjectData::ObjectData(ObjectData&& other)
   : ObjectParams(other), 

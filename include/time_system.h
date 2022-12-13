@@ -7,6 +7,7 @@ class Time {
 
     static float delta_time;
     static float elapsed_time;
+    static float last_debounced_time;
     static unsigned fixed_update_times_this_frame;
 
     static void Update();

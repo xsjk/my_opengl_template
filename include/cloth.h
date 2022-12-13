@@ -21,6 +21,7 @@ class RectCloth : public Group {
   int mousehold = -1;
 
 
+
   struct Points : public ObjectData {
     RectCloth& parent;
     unsigned i;
@@ -30,6 +31,7 @@ class RectCloth : public Group {
     virtual void mouseup(int,int,vec2) override;
     virtual void mouseover(vec2) override;
     virtual void mouseout(vec2) override;
+    virtual void ondblclick(unsigned, unsigned, vec2) override;
   };
 
   struct Faces : public ObjectData {
@@ -40,6 +42,7 @@ class RectCloth : public Group {
     virtual void mouseout(vec2) override;
     virtual void mousedown(int,int,vec2) override;
     virtual void mouseup(int,int,vec2) override;
+    virtual void ondblclick(unsigned, unsigned, vec2) override;
   };
 
   struct Lines : public ObjectData {
@@ -109,9 +112,10 @@ class RectCloth : public Group {
     }
 
     
-    inline auto get_index(int iw, int ih) const { return ih * mass_dim.x + iw; }
+    inline auto get_index(unsigned iw, unsigned ih) const { return ih * mass_dim.x + iw; }
+    inline auto get_index(int iw, int ih) const { return get_index(unsigned(iw < 0 ? mass_dim.x + iw : iw), unsigned(ih < 0 ? mass_dim.y + ih : ih)); }
     inline auto get_index(ivec2 uv) const { return get_index(uv.x, uv.y); }
-    inline auto get_index(float u, float v) const { return get_index(int(u*mass_dim.x), int(v*mass_dim.y)); }
+    inline auto get_index(float u, float v) const { return get_index(int(u*mass_dim.x+.5), int(v*mass_dim.y+.5)); }
     inline auto get_index(vec2 uv) const { return get_index(uv.x, uv.y); }
     inline auto& get_pos(int i) const { return grid_VBO->data[i].position; }
     inline auto& get_pos(int iw, int ih) const { return get_pos(get_index(iw, ih)); }
@@ -148,17 +152,30 @@ class RectCloth : public Group {
     inline void set_color(float r, float g, float b) {
       grid_face->set_color(r, g, b);
     }
+    
+    inline void set_fixed_mass(unsigned id) {
+      is_fixed_masses[id] = true;
+      if (std::find(fixed_points_EBO->data.begin(), fixed_points_EBO->data.end(), id) == fixed_points_EBO->data.end())
+        fixed_points_EBO->data.push_back(id);
+      world_accelerations[id] = vec3(0);
+      world_velocities[id] = vec3(0);
+    }
+
+    inline void remove_fixed_mass(unsigned id) {
+      is_fixed_masses[id] = false;
+      auto it = std::find(fixed_points_EBO->data.begin(), fixed_points_EBO->data.end(), id);
+      if (it != fixed_points_EBO->data.end()) fixed_points_EBO->data.erase(it);
+    }
 
     inline void set_fixed_masses(const std::vector<ivec2>& fixed_masses) {
       for (const auto& m : fixed_masses) {
         int iw = m.x < 0 ? int(mass_dim.x) + m.x : m.x;
         int ih = m.y < 0 ? int(mass_dim.y) + m.y : m.y;
         std::cout << "fixed mass: " << iw << ", " << ih << std::endl;
-        auto i = get_index(iw, ih);
-        is_fixed_masses[i] = true;
-        fixed_points_EBO->data.push_back(i);
+        set_fixed_mass(get_index(iw, ih));
       }
     }
+
 
     inline void apply(const Affine &affine) {
       grid_face->get_data().apply(affine);

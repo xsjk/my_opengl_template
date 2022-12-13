@@ -36,7 +36,8 @@ void Scene::render(PickingShader* pickingShader) {
     pickingShader->set(display.camera);
     for (auto& [shader,objects]: data->renderData)
       for(auto& object:objects)
-        pickingShader->draw(*object);
+        if (object->get_listen_mouse())
+          pickingShader->draw(*object);
   } else {
     clear();
     // draw objects in renderData

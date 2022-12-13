@@ -20,7 +20,7 @@ uniform vec3 color;
 
 void main() {
     for (int i = 0; i < 3; i++) {
-        gl_PointSize = 10.0;
+        gl_PointSize = 20.0;
 
         gs_out.normal = gs_in[i].normal;
         gs_out.pos = gs_in[i].pos;

@@ -298,6 +298,14 @@ void RectCloth::Faces::mouseup(int, int, vec2) {
   parent.mousehold = -1;
 }
 
+void RectCloth::Faces::ondblclick(unsigned x, unsigned y, vec2 uv) {
+  std::cout << "double click at " << parent.get_index(uv) << std::endl;
+  auto pointID = parent.get_index(uv);
+  if (pointID == -1) return;
+  // set the point to be fixed
+  parent.set_fixed_mass(pointID);
+}
+
 void RectCloth::Points::ondrag(unsigned x, unsigned y, vec2 uv) {
   auto pointID = parent.mousehold;
   std::cout << "dragging mass grid at " << uv << " with pointID " << pointID << std::endl;
@@ -335,6 +343,11 @@ void RectCloth::Points::mouseout(vec2 uv) {
   std::cout << "uv " << uv << std::endl;
   set_color(0);
   set_point_size(10);
+}
+
+void RectCloth::Points::ondblclick(unsigned, unsigned, vec2 uv) {
+  std::cout << "double click at " << parent.mousehold << std::endl;
+  parent.remove_fixed_mass(parent.get_index(uv));
 }
 
 RectCloth::Lines::Lines(RectCloth& p):

@@ -3,13 +3,14 @@
 
 float Time::delta_time = 0;
 float Time::elapsed_time = 0;
+float Time::last_debounced_time = 0;
 unsigned Time::fixed_update_times_this_frame = 0;
 
 float Time::elapsed_time_last_frame = 0;
 float Time::elapsed_time_fixed_update_remaining = 0;
 
 /*static*/ void Time::Update() {
-  elapsed_time = float(glfwGetTime());
+  elapsed_time = glfwGetTime();
   delta_time = elapsed_time - elapsed_time_last_frame;
   elapsed_time_last_frame = elapsed_time;
 
