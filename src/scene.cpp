@@ -9,6 +9,7 @@
 #include <spline_surface_object.hpp>
 #include <group.h>
 
+
 ObjectShader Scene::defaultShader;
 
 LightShader Scene::lightShader;
@@ -79,6 +80,10 @@ void Scene::update() {
   for (auto& [_,objects]: data->renderData)
     for (auto& object: objects) 
       object->update();
+  
+  // update objects (High level)
+  for (auto& group: groups)
+    group->update();
 
 }
 

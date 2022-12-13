@@ -4,6 +4,8 @@
 #include <object_data.h>
 #include <light.h>
 #include <picking.h>
+#include <time_system.h>
+
 
 std::unordered_map<GLFWwindow*,Window*> Window::windows;
 Window::Guard Window::guard;
@@ -94,9 +96,12 @@ void Window::mainloop(bool setup) {
   if (setup)
     for (auto [_, window] : windows)
       window->setup();
-  while(all_alive())
+  Time::Update();
+  while(all_alive()) {
+    Time::Update();
     for(auto& [_, window]: windows)
       window->update();
+  }
 }
 
 void Window::checkKeyPressing() {
@@ -191,15 +196,11 @@ void Window::updateObjectID() {
     } catch(std::out_of_range& e) { }
     try { 
       if(picking.last_obj)
-        picking.last_obj->mouseout(picking_object_uv); 
+        picking.last_obj->mouseout(picking.last_uv); 
     } catch(std::out_of_range& e) { }
   } 
 
-  // ondrag
-  if(picking.dragging_obj){
-    picking.dragging_obj->ondrag(cursor_pos[0], cursor_pos[1], picking.dragging_uv );
-
-  }
+  
 }
 
 void Window::bindCallbacks(GLFWwindow* window) {
@@ -281,20 +282,22 @@ void Window::bindCallbacks(GLFWwindow* window) {
     x_ = x; y_ = y;
 
     auto& pos = window.cursor_pos;
-
+    auto& picking = window.picking;
     // mouse move
-    if (window.picking.current_obj) {
+    if (picking.current_obj) {
       /// @todo remake
 
-      window.picking.current_obj->mousemove(
-        window.cursor_pos[0], 
-        window.cursor_pos[1],
-        window.picking.current_uv
+      picking.current_obj->mousemove(
+        pos[0], pos[1], picking.current_uv
       );
     }
 
+    // ondrag
+    if(picking.dragging_obj){
+      picking.dragging_obj->ondrag(pos[0], pos[1], picking.dragging_uv );
+    }
+
     pos = {unsigned(x), unsigned(window.height - y)};
-    // pos = {round(x), round(y)};
 
   });
   glfwSetMouseButtonCallback(window,[](GLFWwindow* w, int b, int a, int m) {
@@ -306,11 +309,11 @@ void Window::bindCallbacks(GLFWwindow* window) {
           case GLFW_PRESS:
             window.picking.MouseButtonCallback(w,b,a,m);
             if (window.picking.current_obj)
-              window.picking.current_obj->onclick(b,m,window.picking.current_uv);
+              window.picking.current_obj->mousedown(b,m,window.picking.current_uv);
             break;
           case GLFW_RELEASE:
             if (window.picking.current_obj)
-              window.picking.current_obj->onrelease(b,m,window.picking.current_uv);
+              window.picking.current_obj->mouseup(b,m,window.picking.current_uv);
             window.picking.MouseButtonCallback(w,b,a,m);
             break;
         }

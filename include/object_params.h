@@ -3,7 +3,7 @@
 
 #include <transform.h>
 
-class ObjectParams : public Affine {
+class AbsoluteObjectParams {
   protected:
     void __update__() {}
     vec3 color;
@@ -12,14 +12,23 @@ class ObjectParams : public Affine {
     float point_size = 10;
     GLenum buffer_mode = GL_STATIC_DRAW;
   public:
-    ObjectParams(vec3 color=vec3{.8}, Affine affine={})
-     : Affine(affine), color(color) {}
-
+    AbsoluteObjectParams(vec3 color=vec3{.8}) : color(color) {}
     SETTER_GETTER(color)
     SETTER_GETTER(visibility)
     SETTER_GETTER(buffer_mode) 
     SETTER_GETTER(opacity)
     SETTER_GETTER(point_size)
+};
+
+class ObjectParams : public AbsoluteObjectParams, public Affine {
+  protected:
+    void __update__() {
+      Affine::__update__(); 
+      AbsoluteObjectParams::__update__();
+    }
+  public:
+    ObjectParams(vec3 color=vec3{.8}, Affine affine={})
+     : AbsoluteObjectParams(color), Affine(affine) {}
 };
 
 #endif

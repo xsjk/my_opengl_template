@@ -41,8 +41,8 @@ class Arrow : public Group {
       Arrow& parent;
       ArrowData(Arrow& arrow);
       virtual void ondrag(unsigned x, unsigned y, vec2 uv) override;
-      virtual void onclick(int button, int mode, vec2 uv) override;
-      virtual void onrelease(int button, int mode, vec2 uv) override;
+      virtual void mousedown(int button, int mode, vec2 uv) override;
+      virtual void mouseup(int button, int mode, vec2 uv) override;
       vec3 get_pos(vec2 uv) const;
     };
     

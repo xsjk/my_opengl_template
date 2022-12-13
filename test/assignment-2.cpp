@@ -115,15 +115,15 @@ int main() {
   }
 
   // add surface 
-  // {
-  //   auto b4 = BezierSurface::read("assets/mybezier.bzs")[0];
-  //   BsplineSurface b5 {b4.control_points,{3,4}};
-  //   Handler<SurfaceObject<BsplineSurface>> s5 {b5};
-  //   s5->set_display_mode(4);
-  //   s5->set_triangulation_mode(Triangulation::uniform);
-  //   s5->surface_face->set_color(0.8);
-  //   scene->add(s5);
-  // }
+  {
+    auto b4 = BezierSurface::read("assets/mybezier.bzs")[0];
+    BsplineSurface b5 {b4.control_points,{2,2}};
+    Handler<SurfaceObject<BsplineSurface>> s5 {b5};
+    s5->set_display_mode(4);
+    s5->set_triangulation_mode(Triangulation::uniform);
+    s5->surface_face->set_color(0.8);
+    scene->add(s5);
+  }
 
   // load meshes
   RenderData 

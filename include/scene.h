@@ -63,8 +63,6 @@ public:
   std::unordered_map<std::string, ObjectBase*> objects = data->objects;
 
   std::vector<Handler<Group>> groups;
-
-  // std::vector<Handler<SurfaceObject<
   
 
   /// @brief clear scene with bg_color

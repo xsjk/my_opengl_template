@@ -568,7 +568,7 @@ static void disableCursor(_GLFWwindow* window)
     updateCursorImage(window);
     _glfwCenterCursorInContentArea(window);
     XGrabPointer(_glfw.x11.display, window->x11.handle, True,
-                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
+                 ButtonPressMask | ButtmouseupMask | PointerMotionMask,
                  GrabModeAsync, GrabModeAsync,
                  window->x11.handle,
                  _glfw.x11.hiddenCursorHandle,
@@ -616,7 +616,7 @@ static GLFWbool createNativeWindow(_GLFWwindow* window,
     XSetWindowAttributes wa = { 0 };
     wa.colormap = window->x11.colormap;
     wa.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask |
-                    PointerMotionMask | ButtonPressMask | ButtonReleaseMask |
+                    PointerMotionMask | ButtonPressMask | ButtmouseupMask |
                     ExposureMask | FocusChangeMask | VisibilityChangeMask |
                     EnterWindowMask | LeaveWindowMask | PropertyChangeMask;
 
@@ -1442,7 +1442,7 @@ static void processEvent(XEvent *event)
             return;
         }
 
-        case ButtonRelease:
+        case Buttmouseup:
         {
             const int mods = translateState(event->xbutton.state);
 

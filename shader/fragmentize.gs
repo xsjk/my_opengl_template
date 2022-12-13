@@ -71,10 +71,10 @@ float get_t() {
 void produce_vertex(vec3 pos, vec3 normal, vec3 center) {
     float t = get_t();
     gs_out.pos = calc_pos(pos, gs_in[0].normal, t);
-    if (gs_out.pos.y<0) 
-        gs_out.pos.y = 0.001;
-    else {
-    }
+    // if (gs_out.pos.y<0) 
+    //     gs_out.pos.y = 0.001;
+    // else {
+    // }
     gs_out.normal = normal;
     gs_out.color = color;
     gl_Position = camera * vec4(gs_out.pos, 1.0);    

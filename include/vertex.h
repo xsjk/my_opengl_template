@@ -8,7 +8,10 @@ struct Vertex {
     vec3 normal;    // used for meshes
     vec3 direction; // used for curves
   };
-  vec2 texcoord = {-1,-1};
+  union {
+    vec2 uv = {-1, -1};
+    vec2 texcoord;
+  };
 };
 
 

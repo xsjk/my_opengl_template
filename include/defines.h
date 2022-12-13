@@ -38,11 +38,17 @@ using glm::transpose;
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
+using glm::uvec2;
+using glm::uvec3;
+using glm::ivec2;
+using glm::ivec3;
+using glm::quat;
 
 using Color = vec3;
 
 enum class Triangulation { adaptive, uniform };
 
+constexpr float EPSILON = 1e-3;
 
 #define GLFW_PRESSING 3
 
@@ -99,7 +105,7 @@ const float PI = pi<float>();
   GETTER(name)
 
 #define MAT_GETTER                    \
-  mat4 matrix() const { return mat; } \
-  operator mat4() const { return mat; }
+  [[nodiscard]] auto matrix() const { return mat; } \
+  operator decltype(mat)() const { return mat; }
 
 #endif // _DEFINES_H_

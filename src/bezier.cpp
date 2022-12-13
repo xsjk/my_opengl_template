@@ -22,7 +22,7 @@ Vertex BezierCurve::evaluate(const std::vector<vec3> &control_points, GLfloat t)
             &dc =  BezierCurve::coeffs(n-1, t, 1);
   const auto &p = weighted_sum(control_points, c);
   const auto &dp = weighted_sum(control_points, dc);
-  return {p, dp, {t,0}};
+  return {p, dp, vec2{t,0}};
 }
 
 double BezierCurve::cur_measure(double t) const {
@@ -109,7 +109,7 @@ Vertex BezierSurface::evaluate(const std::vector<std::vector<vec3>> &control_poi
   auto norm = evalue(cross(du,dv));
   if (norm==vec3(0)) norm = evalue(evaluate(control_points, u+(.5f-u)*.001f,  v+(.5f-v)*.001f).normal);
     
-  return {pos, norm, {u,v}};
+  return {pos, norm, vec2{u,v}};
 
 }
 

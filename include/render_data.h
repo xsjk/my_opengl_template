@@ -6,7 +6,14 @@
 
 #include <buffer.hpp>
 #include <handler.hpp>
+#include <transform.h>
 
+enum class MeshPrimitiveType {
+  Cube,
+  Sphere,
+  Square,
+  Other
+};
 
 struct VertexArrayObject {
   mutable GLuint ID = 0;
@@ -47,10 +54,14 @@ class RenderData {
   GLuint VAO = 0;  
   GLenum draw_mode = GL_TRIANGLES;
 
+  MeshPrimitiveType mesh_primitive_type = MeshPrimitiveType::Other;
+
+  vec3 center = vec3(0);
+
 public:
 
-  inline std::vector<Vertex> & vertices() const { return data->VBO->data; };
-  inline std::vector<GLuint> & indices() const { return data->EBO->data; };
+  inline auto & vertices() const { return data->VBO->data; };
+  inline auto & indices() const { return data->EBO->data; };
   
   RenderData(GLenum draw_mode, bool enable_EBO);
   RenderData(const ObjectDataUpdater& );
@@ -93,6 +104,10 @@ public:
     std::function<vec3(GLfloat)> f, 
     std::vector<GLfloat> t_list
   );
+
+  RenderData(
+    MeshPrimitiveType type
+  );
      
 
   /// @brief create Mesh from file
@@ -131,8 +146,13 @@ public:
 
   void load(const std::string &path);
 
+  void apply(const Affine&);
+
+  bool contains(const vec3&) const;
+
   bool operator==(const RenderData &rhs) const { return data==rhs.data; }
   operator bool() { return bool(data); }
 };
+
 
 #endif

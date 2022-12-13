@@ -3,17 +3,19 @@
 
 // Model
 
-Affine::Affine(vec3 displacement, vec3 rotation, vec3 scale) 
+Affine::Affine(vec3 displacement, Rotation rotation, vec3 scale) 
   : displacement(displacement), rotation(rotation), scale(scale) {
   __update__();
 }
 
 void Affine::__update__() {
-  mat = glm::translate(mat4(1), displacement);
-  mat = glm::rotate(mat, glm::radians(rotation.x), vec3(1, 0, 0));
-  mat = glm::rotate(mat, glm::radians(rotation.y), vec3(0, 1, 0));
-  mat = glm::rotate(mat, glm::radians(rotation.z), vec3(0, 0, 1));
+  // mat = glm::translate(mat4(1), displacement);
+  // mat = rotation.matrix()*mat;
+  // mat = glm::scale(mat, scale);
+  mat = mat4(1);
   mat = glm::scale(mat, scale);
+  mat = mat4(rotation.matrix()) * mat;
+  mat = glm::translate(mat4(1), displacement) * mat;
 }
 
 
@@ -42,6 +44,12 @@ void View::rotate(GLfloat yaw_offset, GLfloat pitch_offset) {
   else if (pitch < -89) pitch = -89;
   __update__();
 }
+
+// void View::set_rotation(const Rotation& rotation) {
+//   yaw = radians(rotation.get_yaw());
+//   pitch = radians(rotation.get_pitch());
+//   __update__();
+// }
 
 // Perspective
 

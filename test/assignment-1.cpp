@@ -15,7 +15,7 @@ int main() {
   Window window{1920, 1080, "Scene"};
 
   // create a scene
-  Scene scene{0,0,1920,1080};
+  Scene scene{0, 0, 1920, 1080};
 
   // add a scene
   scene.display.mode = Display::FOLLOW_CAMERA;
@@ -76,8 +76,8 @@ int main() {
   {
     Color color = {.9,.3,.9};
     ObjectData o{plane, color};
-    o.set_displacement(0,10,0);
-    o.set_rotation(90.0,0.0,0.0);
+    o.set_displacement(0, 10, 0);
+    o.set_rotation(0 , PI/2 , 0);
     o.set_scale(-10);
     scene.add(o);
   }

@@ -78,8 +78,6 @@ public:
 
   /// @brief the PickingTexture for the window
   Picking picking;
-  unsigned picking_object_ID = 0;
-  vec2 picking_object_uv = {0,0};
   Scene* focused_scene = nullptr;
   static Window* focused_window;
 

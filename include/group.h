@@ -10,8 +10,7 @@ struct Group {
 
   Group* parent = nullptr;
 
-
-  virtual void init(Scene &scene) = 0;
+  virtual void init(Scene &) = 0;
 
   virtual void update() {};
 

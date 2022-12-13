@@ -134,6 +134,11 @@ inline std::ostream& operator<<(std::ostream& os, const glm::vec<N, T>& v) {
 }
 
 template<typename T>
+inline std::ostream& operator<<(std::ostream& os, const glm::qua<T>& q) {
+  return os << "(" << q.x << ", " << q.y << ", " << q.z << ", " << q.w << ")";
+}
+
+template<typename T>
 inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
   if (v.empty()) return os << "[]";
   os << "[";
@@ -156,5 +161,6 @@ inline std::ostream& operator<<(std::ostream& os, const std::unordered_map<T1, T
   for (const auto& e : v) os << e.first << ": " << e.second << ", ";
   return os << "\b\b}";
 }
+
 
 #endif

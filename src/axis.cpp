@@ -213,13 +213,13 @@ void Arrow::ArrowData::ondrag(unsigned x, unsigned y, vec2 uv) {
   std::cout << "diff: " << diff << std::endl;
 }
 
-void Arrow::ArrowData::onclick(int button, int mode, vec2 uv) {
+void Arrow::ArrowData::mousedown(int button, int mode, vec2 uv) {
   parent.last_drag = get_pos(uv);
 
   std::cout << "pos: " << get_pos(uv) << std::endl;
 }
 
-void Arrow::ArrowData::onrelease(int button, int mode, vec2 uv) {
+void Arrow::ArrowData::mouseup(int button, int mode, vec2 uv) {
   // parent.last_drag = get_pos(uv);
   // set_displacement(get_displacement()+diff);
 }
@@ -241,7 +241,7 @@ void Arrow::__update__() {
   dir = normalize(dir);
   mesh_object->set_displacement(start);
   mesh_object->set_scale(1, 1, length);
-  mesh_object->set_rotation(glm::degrees(-asin(dir.y)), glm::degrees(atan2(dir.x, dir.z)), 0);
+  mesh_object->set_rotation(atan2(dir.x, dir.z), -asin(dir.y) , 0);
   mesh_object->set_color(color);
   mesh_object->set_visibility(visibility);
 }

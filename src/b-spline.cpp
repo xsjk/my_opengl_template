@@ -37,7 +37,7 @@ Vertex BsplineCurve::evaluate(const std::vector<vec3> &control_points, GLushort 
              &dc= BsplineCurve::coeffs(n, p, t, type, 1);
   const auto &pos= (weighted_sum(control_points, c)),
              &dir= (weighted_sum(control_points, dc));
-  return Vertex{pos, dir, {t,0}};
+  return Vertex{pos, dir, vec2{t,0}};
 }
 
 

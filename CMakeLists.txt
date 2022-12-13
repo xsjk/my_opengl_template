@@ -65,6 +65,11 @@ target_link_libraries(assignment-2 PRIVATE Capsule)
 target_include_directories(assignment-2 PUBLIC include)
 
 
+add_executable(assignment-5 test/assignment-5.cpp)
+target_link_libraries(assignment-5 PRIVATE Capsule)
+target_include_directories(assignment-5 PUBLIC include)
+
+
 
 add_executable(test test/test.cpp)
 target_link_libraries(test PRIVATE Capsule)

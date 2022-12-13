@@ -25,7 +25,7 @@ class SurfaceObject : public Group {
     virtual void ondrag(unsigned x, unsigned y, int) override;
     virtual void mouseover(int) override;
     virtual void mouseout(int) override;
-    virtual void onclick(int,int,int) override;
+    virtual void mousedown(int,int,int) override;
   };
 
   Triangulation triangulation_mode = Triangulation::adaptive;
@@ -179,7 +179,7 @@ void SurfaceObject<S>::ControlPointsObj::mouseout(int pointID) {
 }
 
 template<class S>
-void SurfaceObject<S>::ControlPointsObj::onclick(int,int,int) {
+void SurfaceObject<S>::ControlPointsObj::mousedown(int,int,int) {
   set_color(0);
 }
 
