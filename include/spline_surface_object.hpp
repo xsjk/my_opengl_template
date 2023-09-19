@@ -108,7 +108,7 @@ public:
   
   /// @brief create bezier surface from a single surface
   /// @param surface 
-  SurfaceObject<S>(const S& surface);
+  SurfaceObject(const S& surface);
 
   void init(bool VBOonly = false);
 

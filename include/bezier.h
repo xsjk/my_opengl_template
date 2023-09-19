@@ -1,4 +1,4 @@
-#ifndef _BEZIER_H_
+﻿#ifndef _BEZIER_H_
 #define _BEZIER_H_
 #include <defines.h>
 #include <vertex.h>

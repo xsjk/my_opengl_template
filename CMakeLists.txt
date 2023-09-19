@@ -14,8 +14,8 @@ include_directories(libs/glfw/include)
 list(APPEND LIBRARIES glfw ${glfw_LIBRARIES})
 
 # glad
-set(GLAD_INCLUDE libs/glad/include)
-include_directories(${GLAD_INCLUDE})
+add_subdirectory(libs/glad)
+list(APPEND LIBRARIES glad)
 
 # glm
 add_subdirectory(libs/glm)
@@ -28,10 +28,6 @@ if (USE_FILESYSTEM)
     list(APPEND LIBRARIES stdc++fs)
   endif()
 endif()
-
-# glad
-add_library(GLAD src/glad.c)
-list(APPEND LIBRARIES GLAD)
 
 
 # set source files and add executable
@@ -53,7 +49,7 @@ target_include_directories(Capsule PUBLIC libs)
 target_include_directories(Capsule PUBLIC utils)
 target_compile_definitions(Capsule PUBLIC ${DEFINES})
 target_link_libraries(Capsule PUBLIC ${LIBRARIES})
-target_compile_features(Capsule PUBLIC cxx_std_17)
+target_compile_features(Capsule PUBLIC cxx_std_20)
 
 # add executable
 add_executable(assignment-1 test/assignment-1.cpp)

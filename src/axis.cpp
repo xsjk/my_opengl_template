@@ -18,33 +18,33 @@ ArrowMesh::ArrowMesh(float head_radius, float body_radius, float head_height, fl
     // point at the top
     pos = vec3(0, 0, body_length);
     norm = vec3(
-      tan * cos(2 * M_PI * (i+0.5) / n),
-      tan * sin(2 * M_PI * (i+0.5) / n),
+      tan * cos(2 * PI * (i+0.5) / n),
+      tan * sin(2 * PI * (i+0.5) / n),
       1
     );      points.push_back({pos, norm});
       
     // point on the circle
     pos = vec3(
-      head_radius * cos(2 * M_PI * i / n),
-      head_radius * sin(2 * M_PI * i / n),
+      head_radius * cos(2 * PI * i / n),
+      head_radius * sin(2 * PI * i / n),
       body_length - head_height
     );
     norm = vec3(
-      tan * cos(2 * M_PI * i / n),
-      tan * sin(2 * M_PI * i / n),
+      tan * cos(2 * PI * i / n),
+      tan * sin(2 * PI * i / n),
       1
     );
     points.push_back({pos, norm});
       
     // point on the circle
     pos = vec3(
-      head_radius * cos(2 * M_PI * (i + 1) / n),
-      head_radius * sin(2 * M_PI * (i + 1) / n),
+      head_radius * cos(2 * PI * (i + 1) / n),
+      head_radius * sin(2 * PI * (i + 1) / n),
       body_length - head_height
     );
     norm = vec3(
-      tan * cos(2 * M_PI * (i + 1) / n),
-      tan * sin(2 * M_PI * (i + 1) / n),
+      tan * cos(2 * PI * (i + 1) / n),
+      tan * sin(2 * PI * (i + 1) / n),
       1
     );
     points.push_back({pos, norm});
@@ -61,16 +61,16 @@ ArrowMesh::ArrowMesh(float head_radius, float body_radius, float head_height, fl
       
     // point on the circle
     pos = vec3(
-      head_radius * cos(2 * M_PI * (i + 1) / n),
-      head_radius * sin(2 * M_PI * (i + 1) / n),
+      head_radius * cos(2 * PI * (i + 1) / n),
+      head_radius * sin(2 * PI * (i + 1) / n),
       body_length - head_height
     );
     points.push_back({pos, norm});
       
     // point on the circle
     pos = vec3(
-      head_radius * cos(2 * M_PI * i / n),
-      head_radius * sin(2 * M_PI * i / n),
+      head_radius * cos(2 * PI * i / n),
+      head_radius * sin(2 * PI * i / n),
       body_length - head_height
     );
     points.push_back({pos, norm});
@@ -81,50 +81,50 @@ ArrowMesh::ArrowMesh(float head_radius, float body_radius, float head_height, fl
 
     // point at the top
     pos = vec3(
-      body_radius * cos(2 * M_PI * (i) / n),
-      body_radius * sin(2 * M_PI * (i) / n),
+      body_radius * cos(2 * PI * (i) / n),
+      body_radius * sin(2 * PI * (i) / n),
       body_length - head_height
     );
     norm = vec3(
-      cos(2 * M_PI * (i) / n),
-      sin(2 * M_PI * (i) / n),
+      cos(2 * PI * (i) / n),
+      sin(2 * PI * (i) / n),
       0
     );
     points.push_back({pos, norm});
 
     // point at the bottom
     pos = vec3(
-      body_radius * cos(2 * M_PI * (i) / n),
-      body_radius * sin(2 * M_PI * (i) / n),
+      body_radius * cos(2 * PI * (i) / n),
+      body_radius * sin(2 * PI * (i) / n),
       0
     );
     points.push_back({pos, norm});
 
     // point at the top
     pos = vec3(
-      body_radius * cos(2 * M_PI * (i + 1) / n),
-      body_radius * sin(2 * M_PI * (i + 1) / n),
+      body_radius * cos(2 * PI * (i + 1) / n),
+      body_radius * sin(2 * PI * (i + 1) / n),
       body_length - head_height
     );
     norm = vec3(
-      cos(2 * M_PI * (i + 1) / n),
-      sin(2 * M_PI * (i + 1) / n),
+      cos(2 * PI * (i + 1) / n),
+      sin(2 * PI * (i + 1) / n),
       0
     );
     points.push_back({pos, norm});
 
     // point at the bottom
     pos = vec3(
-      body_radius * cos(2 * M_PI * (i+1) / n),
-      body_radius * sin(2 * M_PI * (i+1) / n),
+      body_radius * cos(2 * PI * (i+1) / n),
+      body_radius * sin(2 * PI * (i+1) / n),
       0
     );
     points.push_back({pos, norm});
 
     // point at the top
     pos = vec3(
-      body_radius * cos(2 * M_PI * (i + 1) / n),
-      body_radius * sin(2 * M_PI * (i + 1) / n),
+      body_radius * cos(2 * PI * (i + 1) / n),
+      body_radius * sin(2 * PI * (i + 1) / n),
       body_length - head_height
     );
 
@@ -132,13 +132,13 @@ ArrowMesh::ArrowMesh(float head_radius, float body_radius, float head_height, fl
 
     // point at the bottom
     pos = vec3(
-      body_radius * cos(2 * M_PI * (i) / n),
-      body_radius * sin(2 * M_PI * (i) / n),
+      body_radius * cos(2 * PI * (i) / n),
+      body_radius * sin(2 * PI * (i) / n),
       0
     );
     norm = vec3(
-      cos(2 * M_PI * (i) / n),
-      sin(2 * M_PI * (i) / n),
+      cos(2 * PI * (i) / n),
+      sin(2 * PI * (i) / n),
       0
     );
     points.push_back({pos, norm});
@@ -156,9 +156,9 @@ SphereMesh::SphereMesh(float radius, int n) : RenderData([=](){
 
   const auto gen = [=](int i, int j) {
     const auto pos = radius*vec3{
-      cos(2*M_PI*i/n) * sin(M_PI*j/n),
-      sin(2*M_PI*i/n) * sin(M_PI*j/n),
-      cos(M_PI*j/n)
+      cos(2*PI*i/n) * sin(PI*j/n),
+      sin(2*PI*i/n) * sin(PI*j/n),
+      cos(PI*j/n)
     };
     return Vertex{pos, pos};
   };
@@ -186,14 +186,14 @@ const std::function<vec3(float, float)> Arrow::mesh_generator {[](float u, float
   const double body_radius = 0.05;
   if (v < body_length) {
     pos = vec3(
-      body_radius * cos(2 * M_PI * u),
-      body_radius * sin(2 * M_PI * u),
+      body_radius * cos(2 * PI * u),
+      body_radius * sin(2 * PI * u),
       v
     );
   } else {
     pos = vec3(
-      head_radius * cos(2 * M_PI * u) * (1 - (v - body_length) / head_height),
-      head_radius * sin(2 * M_PI * u) * (1 - (v - body_length) / head_height),
+      head_radius * cos(2 * PI * u) * (1 - (v - body_length) / head_height),
+      head_radius * sin(2 * PI * u) * (1 - (v - body_length) / head_height),
       v
     );
   }

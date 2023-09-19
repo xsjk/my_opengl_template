@@ -15,6 +15,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <map>
 #include <bitset>
 #include <fstream>
 #include <sstream>
@@ -22,7 +23,6 @@
 #include <regex>
 #include <optional>
 #include <type_traits>
-
 
 using glm::cross;
 using glm::dot;
@@ -52,7 +52,7 @@ constexpr float EPSILON = 1e-3;
 
 #define GLFW_PRESSING 3
 
-const float PI = pi<float>();
+constexpr float PI = glm::pi<float>();
 
 #define LOG_INFO(msg)                             \
   std::cerr << "[INFO] "                          \
