@@ -21,6 +21,7 @@ The scene with three `Bunny` models with different shaders and light sources.
 ```
 ./assignment-1.exe
 ```
+![assignment-1](./screenshots/assignment-1.png)
 
 ### Assignment 2
 
@@ -28,6 +29,7 @@ The scene with Bezier surfaces and draggable control points.
 ```
 ./assignment-2.exe
 ```
+![assignment-2](./screenshots/assignment-2.png)
 
 ### Assignment 5
 
@@ -35,6 +37,7 @@ The simulation of cloth with wind.
 ```
 ./assignment-5.exe
 ```
+![assignment-5](./screenshots/assignment-5.png)
 
 
 ## Key bindings

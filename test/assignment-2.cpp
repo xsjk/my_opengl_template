@@ -122,7 +122,7 @@ int main() {
     s5->set_display_mode(4);
     s5->set_triangulation_mode(Triangulation::uniform);
     s5->surface_face->set_color(0.8);
-    scene->add(s5);
+    // scene->add(s5);
   }
 
   // load meshes
